@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "esNext",
+    "target": "ES6",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@babylonjs/*": ["./node_modules/@babylonjs/*"],
+      "socket.io/*": ["./node_modules/socket.io/*"],
+      "socket.io-client/*": ["./node_modules/socket.io-client/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}
