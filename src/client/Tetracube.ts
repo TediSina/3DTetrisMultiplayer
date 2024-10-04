@@ -2,12 +2,21 @@ import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import * as Tetracubes from "./createTetracubes";
 import { checkTetracubePosition, calculateTetracubeCubePosition } from "./checkTetracubePosition";
 import { checkTetracubeRotation, calculateTetracubeCubeRotation } from "./checkTetracubeRotation";
+import { Socket } from 'socket.io-client/build/esm/index';
+
 
 export class Tetracube {
-    private cubes!: BABYLON.Mesh[];
+    private socket: Socket;
+    public cubes!: BABYLON.Mesh[];
     private scene: BABYLON.Scene;
 
-    constructor(scene: BABYLON.Scene) {
+    /**
+     * Constructor for the Tetracube class.
+     * @param socket The socket that the tetracube should use to communicate with the server.
+     * @param scene The scene in which the tetracube should be rendered.
+     */
+    constructor(socket: Socket, scene: BABYLON.Scene) {
+        this.socket = socket;
         this.scene = scene;
     }
 
@@ -18,13 +27,14 @@ export class Tetracube {
         const rotation = this.generateRotation(position);
         this.positionTetracube(position);
         this.rotateTetracube(rotation);
+        this.socket.emit('tetracubeGenerated', 'roomId123');
     }
 
     /**
      * Sets the position of all the cubes in the tetracube.
      * @param position - The position to set the cubes at.
      */
-    private positionTetracube(position: BABYLON.Vector3): void {
+    public positionTetracube(position: BABYLON.Vector3): void {
         const translationMatrix = BABYLON.Matrix.Translation(position.x, position.y, position.z);
         this.cubes.forEach(cube => {
             cube.position = BABYLON.Vector3.TransformCoordinates(cube.position, translationMatrix);
@@ -35,7 +45,7 @@ export class Tetracube {
      * Rotates the tetracube.
      * @param rotation - The rotation to apply to the cubes (yaw, pitch, roll).
      */
-    private rotateTetracube(rotation: BABYLON.Vector3): void {
+    public rotateTetracube(rotation: BABYLON.Vector3): void {
         const rotationMatrix = BABYLON.Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z);
         const center = this.calculateCenter();
 
@@ -54,7 +64,7 @@ export class Tetracube {
      * Picks a random tetracube type and creates the corresponding tetracube.
      * @returns The created tetracube.
      */
-    private pickRandomTetracube(): BABYLON.Mesh[] {
+    public pickRandomTetracube(): BABYLON.Mesh[] {
         const random = Math.floor(Math.random() * 8);
         switch (random) {
             case 0: return Tetracubes.createI_Tetracube(this.scene);
@@ -73,7 +83,7 @@ export class Tetracube {
      * Generates a random valid position for the tetracube.
      * @returns The generated position.
      */
-    private generatePosition(): BABYLON.Vector3 {
+    public generatePosition(): BABYLON.Vector3 {
         let positionX = Math.floor(Math.random() * 10) - 6;
         const positionY = 19;
         let positionZ = Math.floor(Math.random() * 10);
@@ -91,7 +101,7 @@ export class Tetracube {
      * @param position - The current position of the tetracube.
      * @returns The generated rotation.
      */
-    private generateRotation(position: BABYLON.Vector3): BABYLON.Vector3 {
+    public generateRotation(position: BABYLON.Vector3): BABYLON.Vector3 {
         const cubePositions = calculateTetracubeCubePosition(this.cubes, position);
 
         let rotationX = Math.floor(Math.random() * 4) * Math.PI / 2;

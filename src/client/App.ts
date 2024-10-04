@@ -1,9 +1,5 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import {Game} from "./Game";
-import { io } from 'socket.io-client/build/esm/index';
-
-
-const socket = io();
 
 
 class App {
