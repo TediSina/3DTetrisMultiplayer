@@ -10,7 +10,7 @@ import { on as socketOn } from "socket.io-client/build/esm/on";
 
 
 export class Game {
-    private socket: Socket = io();
+    private socket: Socket = io("http://localhost:3000");
     private scene: BABYLON.Scene;
     public Tetracube: Tetracube;
     private timeStep: number = 0;
@@ -57,38 +57,16 @@ export class Game {
         const Tower3_Tetracube = Tetracubes.createTower3_Tetracube(scene);
         positionTetracube(Tower3_Tetracube, new BABYLON.Vector3(15, 0, -5));
 
-        // TODO: Fix this
-        //socketOn(this.socket, 'generateTetracube', (data) => {
-        //    switch (data.tetracube) {
-        //        case 'I':
-        //            this.Tetracube.cubes = Tetracubes.createI_Tetracube(scene);
-        //            break;
-        //        case 'LJ':
-        //            this.Tetracube.cubes = Tetracubes.createLJ_Tetracube(scene);
-        //            break;
-        //        case 'SZ':
-        //            this.Tetracube.cubes = Tetracubes.createSZ_Tetracube(scene);
-        //            break;
-        //        case 'O':
-        //            this.Tetracube.cubes = Tetracubes.createO_Tetracube(scene);
-        //            break;
-        //        case 'T':
-        //            this.Tetracube.cubes = Tetracubes.createT_Tetracube(scene);
-        //            break;
-        //        case 'Tower1':
-        //            this.Tetracube.cubes = Tetracubes.createTower1_Tetracube(scene);
-        //            break;
-        //        case 'Tower2':
-        //            this.Tetracube.cubes = Tetracubes.createTower2_Tetracube(scene);
-        //            break;
-        //        case 'Tower3':
-        //            this.Tetracube.cubes = Tetracubes.createTower3_Tetracube(scene);
-        //            break;
-        //    }
-        //    this.Tetracube.positionTetracube(data.position);
-        //    this.Tetracube.rotateTetracube(data.rotation);
-        //});
-        this.Tetracube.generateTetracube();
+        socketOn(this.socket, 'generateTetracube', (data) => {
+            console.log(data);
+            this.Tetracube.cubes = this.Tetracube.pickTetracube(data[0]);
+            this.Tetracube.pickTetracube(data[0]);
+            this.Tetracube.positionTetracube(data[1]);
+            this.Tetracube.rotateTetracube(data[2]);
+
+            console.log(this.Tetracube);
+            console.log(this.Tetracube.cubes);
+        });
     }
 
     private initializeMatrixMap(width: number, height: number, depth: number) {
@@ -165,19 +143,15 @@ export class Game {
     }
 
     public update(): void {
-        if (this.timeStep >= this.timeCheck) {
-            if (this.Tetracube && (this.tetracubeHasReachedBottom() || this.cubesHaveCollided())) {
-                this.Tetracube.generateTetracube();
+        if (!this.Tetracube || !this.Tetracube.getCubes()) {
+            return;
+        }
 
-                // Listen for tetracube control event
-                socketOn(this.socket, 'controlTetracube', () => {
-                    console.log("You control the tetracube now!");
-                
-                    // Activate tetracube movement and controls here
-                    // E.g., enable keyboard inputs to control the current tetracube
-                });
+        if (this.timeStep >= this.timeCheck) {
+            if (this.tetracubeHasReachedBottom() || this.cubesHaveCollided()) {
+                this.socket.emit('tetracubeCollided', 'roomId123');
             }
-            
+
             const positionIsValid = checkTetracubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, -1, 0));
 
             if (positionIsValid) {

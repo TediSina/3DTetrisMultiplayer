@@ -6,6 +6,7 @@ import { dirname } from 'path';
 import { Server } from 'socket.io/dist/index';
 import { HeadlessApp } from './HeadlessApp';
 import { pickRandomTetracube } from './randomizeTetracube';
+import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -54,15 +55,18 @@ io.on('connection', (socket) => {
 
         // Notify all players about new player joining
         io.to(roomId).emit('playerJoined', rooms[roomId].players);
+
+        //const headlessApp = new HeadlessApp();
+
+        const tetracube: string = pickRandomTetracube();
+        const position = new BABYLON.Vector3(0, 20, 0); //= headlessApp.headlessGame.headlessTetracube.generatePosition();
+        const rotation = new BABYLON.Vector3(0, 0, 0); //= headlessApp.headlessGame.headlessTetracube.generateRotation(position);
+        console.log(`Generated tetracube: ${tetracube}`);
+        console.log(`Generated position: ${position}`);
+        console.log(`Generated rotation: ${rotation}`);
+
+        io.to(roomId).emit('generateTetracube', [tetracube, position, rotation]);
     });
-
-    //const headlessApp = new HeadlessApp();
-
-    //const tetracube: string = pickRandomTetracube();
-    //const position = headlessApp.headlessGame.headlessTetracube.generatePosition();
-    //const rotation = headlessApp.headlessGame.headlessTetracube.generateRotation(position);
-
-    socket.emit('generateTetracube', 'roomId123', /* tetracube, position, rotation */);
 
     socket.on('tetracubeGenerated', (roomId: string) => {
         const room = rooms[roomId];
