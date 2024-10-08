@@ -7,7 +7,7 @@
   "scripts": {
     "build": "webpack",
     "webpack-watch": "webpack --config webpack.config.cjs --watch",
-    "server": "nodemon --watch src --exec \"tsx src/server/server.ts\"",
+    "server": "nodemon --watch src --exec \"tsx src/server/HeadlessApp.ts\"",
     "dev": "concurrently \"npm:webpack-watch\" \"npm:server\""
   },
   "repository": {
