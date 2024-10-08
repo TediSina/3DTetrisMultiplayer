@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
-import { GridMaterial } from "@babylonjs/materials/grid/gridMaterial";
+import { GridMaterial } from "../../node_modules/@babylonjs/materials/index";
 
 
 /**

@@ -53,9 +53,9 @@ export function rotateTetracube(cubes: BABYLON.Mesh[], rotation: BABYLON.Vector3
 /**
  * Picks a random tetracube type and creates the corresponding tetracube.
  * @param scene - The scene to create the tetracube in.
- * @returns The created tetracube.
+ * @returns The created tetracube and its type (string).
  */
-export function pickRandomTetracube(scene: BABYLON.Scene): BABYLON.Mesh[] {
+export function pickRandomTetracube(scene: BABYLON.Scene): [BABYLON.Mesh[], "I" | "LJ" | "T" | "SZ" | "O" | "Tower1" | "Tower2" | "Tower3"] {
     let tetracube: BABYLON.Mesh[];
 
     const random = Math.floor(Math.random() * 8);
@@ -63,31 +63,31 @@ export function pickRandomTetracube(scene: BABYLON.Scene): BABYLON.Mesh[] {
     switch (random) {
         case 0:
             tetracube = Tetracubes.createI_Tetracube(scene);
-            return tetracube;
+            return [tetracube, "I"];
         case 1:
             tetracube = Tetracubes.createLJ_Tetracube(scene);
-            return tetracube;
+            return [tetracube, "LJ"];
         case 2:
             tetracube = Tetracubes.createT_Tetracube(scene);
-            return tetracube;
+            return [tetracube, "T"];
         case 3:
             tetracube = Tetracubes.createSZ_Tetracube(scene);
-            return tetracube;
+            return [tetracube, "SZ"];
         case 4:
             tetracube = Tetracubes.createO_Tetracube(scene);
-            return tetracube;
+            return [tetracube, "O"];
         case 5:
             tetracube = Tetracubes.createTower1_Tetracube(scene);
-            return tetracube;
+            return [tetracube, "Tower1"];
         case 6:
             tetracube = Tetracubes.createTower2_Tetracube(scene);
-            return tetracube;
+            return [tetracube, "Tower2"];
         case 7:
             tetracube = Tetracubes.createTower3_Tetracube(scene);
-            return tetracube;
+            return [tetracube, "Tower3"];
         default:
             tetracube = Tetracubes.createI_Tetracube(scene);
-            return tetracube;
+            return [tetracube, "I"];
     };
 }
 
@@ -106,14 +106,14 @@ export function generateTetracubePosition(tetracube: BABYLON.Mesh[]): BABYLON.Ve
 }
 
 
-export function generateTetracubeRotation(tetracube: BABYLON.Mesh[], tetracubePosition: BABYLON.Vector3): BABYLON.Vector3 {
+export function generateTetracubeRotation(tetracube: BABYLON.Mesh[], tetracubePosition: BABYLON.Vector3, type: "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3"): BABYLON.Vector3 {
     const cubePositions: BABYLON.Vector3[] = calculateTetracubeCubePosition(tetracube, tetracubePosition);
 
     let rotationX = Math.floor(Math.random() * 4) * Math.PI / 2; // 0, π/2, π, 3π/2
     let rotationY = Math.floor(Math.random() * 4) * Math.PI / 2;
     let rotationZ = Math.floor(Math.random() * 4) * Math.PI / 2;
 
-    while (!checkTetracubeRotation(cubePositions,  new BABYLON.Vector3(rotationX, rotationY, rotationZ))) {
+    while (!checkTetracubeRotation(cubePositions,  new BABYLON.Vector3(rotationX, rotationY, rotationZ), type)) {
         rotationX = Math.floor(Math.random() * 4) * Math.PI / 2;
         rotationY = Math.floor(Math.random() * 4) * Math.PI / 2;
         rotationZ = Math.floor(Math.random() * 4) * Math.PI / 2;
@@ -123,12 +123,15 @@ export function generateTetracubeRotation(tetracube: BABYLON.Mesh[], tetracubePo
 }
 
 
+
 export function generateTetracube(scene: BABYLON.Scene): BABYLON.Mesh[] {
-    const tetracube: BABYLON.Mesh[] = pickRandomTetracube(scene);
+    const pickedTetracube: [BABYLON.Mesh[], "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3"] = pickRandomTetracube(scene);
+    const tetracube: BABYLON.Mesh[] = pickedTetracube[0];
+    const type: "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3" = pickedTetracube[1];
 
     const position: BABYLON.Vector3 = generateTetracubePosition(tetracube);
 
-    const rotation: BABYLON.Vector3 = generateTetracubeRotation(tetracube, position);
+    const rotation: BABYLON.Vector3 = generateTetracubeRotation(tetracube, position, type);
 
     positionTetracube(tetracube, position);
 

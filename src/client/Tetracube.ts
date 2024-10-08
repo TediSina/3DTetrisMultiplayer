@@ -1,32 +1,31 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { checkTetracubePosition, calculateTetracubeCubePosition } from "./checkTetracubePosition";
 import { checkTetracubeRotation } from "./checkTetracubeRotation";
-import { Socket } from 'socket.io-client/build/esm/index';
 
 
 export class Tetracube {
-    private socket: Socket;
     public cubes!: BABYLON.Mesh[];
     private scene: BABYLON.Scene;
+    public type!: "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3";
 
     /**
      * Constructor for the Tetracube class.
-     * @param socket The socket that the tetracube should use to communicate with the server.
      * @param scene The scene in which the tetracube should be rendered.
      */
-    constructor(socket: Socket, scene: BABYLON.Scene) {
-        this.socket = socket;
+    constructor(scene: BABYLON.Scene) {
         this.scene = scene;
     }
 
 
     public generateTetracube(): void {
-        this.cubes = this.pickRandomTetracube();
+        const pickedTetracube: [BABYLON.Mesh[], "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3"] = this.pickRandomTetracube();
+        this.cubes = pickedTetracube[0];
+        this.type = pickedTetracube[1];
+        // TODO: Take into consideration the currrent matrix map when generating the new tetracube.
         const position = this.generatePosition();
-        const rotation = this.generateRotation(position);
+        // TODO: const rotation = this.generateRotation(position, this.type);
         this.positionTetracube(position);
-        this.rotateTetracube(rotation);
-        this.socket.emit('tetracubeGenerated', 'roomId123');
+        //TODO: this.rotateTetracube(rotation);
     }
 
     /**
@@ -238,18 +237,18 @@ export class Tetracube {
      * Picks a random tetracube type and creates the corresponding tetracube.
      * @returns The created tetracube.
      */
-    public pickRandomTetracube(): BABYLON.Mesh[] {
+    public pickRandomTetracube(): [BABYLON.Mesh[], "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3"] {
         const random = Math.floor(Math.random() * 8);
         switch (random) {
-            case 0: return this.createI_Tetracube();
-            case 1: return this.createLJ_Tetracube();
-            case 2: return this.createT_Tetracube();
-            case 3: return this.createSZ_Tetracube();
-            case 4: return this.createO_Tetracube();
-            case 5: return this.createTower1_Tetracube();
-            case 6: return this.createTower2_Tetracube();
-            case 7: return this.createTower3_Tetracube();
-            default: return this.createI_Tetracube();
+            case 0: return [this.createI_Tetracube(), "I"];
+            case 1: return [this.createLJ_Tetracube(), "LJ"];
+            case 2: return [this.createT_Tetracube(), "T"];
+            case 3: return [this.createSZ_Tetracube(), "SZ"];
+            case 4: return [this.createO_Tetracube(), "O"];
+            case 5: return [this.createTower1_Tetracube(), "Tower1"];
+            case 6: return [this.createTower2_Tetracube(), "Tower2"];
+            case 7: return [this.createTower3_Tetracube(), "Tower3"];
+            default: return [this.createI_Tetracube(), "I"];
         }
     }
 
@@ -275,14 +274,14 @@ export class Tetracube {
      * @param position - The current position of the tetracube.
      * @returns The generated rotation.
      */
-    public generateRotation(position: BABYLON.Vector3): BABYLON.Vector3 {
+    public generateRotation(position: BABYLON.Vector3, type: "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3"): BABYLON.Vector3 {
         const cubePositions = calculateTetracubeCubePosition(this.cubes, position);
 
         let rotationX = Math.floor(Math.random() * 4) * Math.PI / 2;
         let rotationY = Math.floor(Math.random() * 4) * Math.PI / 2;
         let rotationZ = Math.floor(Math.random() * 4) * Math.PI / 2;
 
-        while (!checkTetracubeRotation(cubePositions, new BABYLON.Vector3(rotationX, rotationY, rotationZ))) {
+        while (!checkTetracubeRotation(cubePositions, new BABYLON.Vector3(rotationX, rotationY, rotationZ), type)) {
             rotationX = Math.floor(Math.random() * 4) * Math.PI / 2;
             rotationY = Math.floor(Math.random() * 4) * Math.PI / 2;
             rotationZ = Math.floor(Math.random() * 4) * Math.PI / 2;
