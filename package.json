@@ -37,6 +37,7 @@
   "homepage": "https://github.com/TediSina/3DTetrisMultiplayer#readme",
   "dependencies": {
     "@babylonjs/core": "^7.28.0",
+    "@babylonjs/gui": "^7.29.0",
     "socket.io": "^4.8.0",
     "socket.io-client": "^4.8.0"
   },

@@ -1,8 +1,9 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import * as Tetracubes from "./createTetracubes";
 import { checkTetracubePosition } from "./checkTetracubePosition";
-import { checkTetracubeRotation } from "./checkTetracubeRotation";
+import { checkTetracubeRotation, calculateCenter } from "./checkTetracubeRotation";
 import { calculateTetracubeCubePosition } from "./checkTetracubePosition";
+import * as Matrices from "./rotationMatrices";
 
 
 /**
@@ -26,18 +27,16 @@ export function positionTetracube(cubes: BABYLON.Mesh[], position: BABYLON.Vecto
  * @param cubes - The array of cubes to be rotated.
  * @param rotation - The rotation to apply to the cubes (yaw, pitch, roll).
  */
-export function rotateTetracube(cubes: BABYLON.Mesh[], rotation: BABYLON.Vector3): void {
-    // Calculate rotation matrix
-    const rotationMatrix = BABYLON.Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z);
-
-    // Find the center of the tetracube by averaging the positions of the cubes
-    const center = cubes.reduce((acc, cube) => acc.addInPlace(cube.position), BABYLON.Vector3.Zero()).scaleInPlace(1 / cubes.length);
-
+export function rotateTetracube(cubes: BABYLON.Mesh[], rotationMatrix: BABYLON.Matrix): void {
+    const cubesPosition = calculateTetracubeCubePosition(cubes, BABYLON.Vector3.Zero());
+    // Find the center of the tetracube
+    const center = calculateCenter(cubesPosition);
+    
     cubes.forEach(cube => {
         // Translate cube position relative to the tetracube center
         const relativePosition = cube.position.subtract(center);
 
-        // Rotate the relative position
+        // Rotate the relative position using the selected rotation matrix
         const rotatedPosition = BABYLON.Vector3.TransformCoordinates(relativePosition, rotationMatrix);
 
         // Set the new position relative to the original center, rounding to the nearest integer
@@ -92,13 +91,18 @@ export function pickRandomTetracube(scene: BABYLON.Scene): [BABYLON.Mesh[], "I" 
 }
 
 
+/**
+ * Generates a random valid position for the given tetracube.
+ * @param tetracube - The tetracube to generate a position for.
+ * @returns The generated position.
+ */
 export function generateTetracubePosition(tetracube: BABYLON.Mesh[]): BABYLON.Vector3 {
-    let positionX = Math.floor(Math.random() * (3 - (-6) + 1)) + (-6);
+    let positionX = Math.floor(Math.random() * (9 - 0 + 1)) + 0;
     const positionY = 19;
     let positionZ = Math.floor(Math.random() * (9 - 0 + 1)) + 0;
 
     while (!checkTetracubePosition(tetracube, new BABYLON.Vector3(positionX, positionY, positionZ))) {
-        positionX = Math.floor(Math.random() * (3 - (-6) + 1)) + (-6);
+        positionX = Math.floor(Math.random() * (9 - 0 + 1)) + 0;
         positionZ = Math.floor(Math.random() * (9 - 0 + 1)) + 0;
     }
 
@@ -106,24 +110,48 @@ export function generateTetracubePosition(tetracube: BABYLON.Mesh[]): BABYLON.Ve
 }
 
 
-export function generateTetracubeRotation(tetracube: BABYLON.Mesh[], tetracubePosition: BABYLON.Vector3, type: "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3"): BABYLON.Vector3 {
-    const cubePositions: BABYLON.Vector3[] = calculateTetracubeCubePosition(tetracube, tetracubePosition);
+/**
+ * Generates a random valid rotation for the given tetracube at the given position.
+ * @param tetracube - The tetracube to generate a rotation for.
+ * @param tetracubePosition - The position of the tetracube.
+ * @param type - The type of the tetracube.
+ * @returns The generated rotation.
+ */
+export function generateTetracubeRotation(tetracube: BABYLON.Mesh[], tetracubePosition: BABYLON.Vector3, type: "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3"): BABYLON.Matrix {
+    const cubePositions = calculateTetracubeCubePosition(tetracube, tetracubePosition);
 
-    let rotationX = Math.floor(Math.random() * 4) * Math.PI / 2; // 0, π/2, π, 3π/2
-    let rotationY = Math.floor(Math.random() * 4) * Math.PI / 2;
-    let rotationZ = Math.floor(Math.random() * 4) * Math.PI / 2;
+    // Arrays of predefined rotation matrices for each axis
+    const xRotationMatrices: BABYLON.Matrix[] = [Matrices.noRotationMatrix, Matrices.rotationMatrixX90, Matrices.rotationMatrixX180, Matrices.rotationMatrixX270];
+    const yRotationMatrices: BABYLON.Matrix[] = [Matrices.noRotationMatrix, Matrices.rotationMatrixY90, Matrices.rotationMatrixY180, Matrices.rotationMatrixY270];
+    const zRotationMatrices: BABYLON.Matrix[] = [Matrices.noRotationMatrix, Matrices.rotationMatrixZ90, Matrices.rotationMatrixZ180, Matrices.rotationMatrixZ270];
 
-    while (!checkTetracubeRotation(cubePositions,  new BABYLON.Vector3(rotationX, rotationY, rotationZ), type)) {
-        rotationX = Math.floor(Math.random() * 4) * Math.PI / 2;
-        rotationY = Math.floor(Math.random() * 4) * Math.PI / 2;
-        rotationZ = Math.floor(Math.random() * 4) * Math.PI / 2;
+    // Randomly select a rotation matrix for each axis
+    let rotationMatrixX: BABYLON.Matrix = xRotationMatrices[Math.floor(Math.random() * xRotationMatrices.length)];
+    let rotationMatrixY: BABYLON.Matrix = yRotationMatrices[Math.floor(Math.random() * yRotationMatrices.length)];
+    let rotationMatrixZ: BABYLON.Matrix = zRotationMatrices[Math.floor(Math.random() * zRotationMatrices.length)];
+
+    // Combine the selected matrices (you can multiply them to apply all rotations)
+    let finalRotationMatrix: BABYLON.Matrix = rotationMatrixX.multiply(rotationMatrixY).multiply(rotationMatrixZ);
+
+    while (!checkTetracubeRotation(cubePositions, finalRotationMatrix, type)) {
+        rotationMatrixX = xRotationMatrices[Math.floor(Math.random() * xRotationMatrices.length)];
+        rotationMatrixY = yRotationMatrices[Math.floor(Math.random() * yRotationMatrices.length)];
+        rotationMatrixZ = zRotationMatrices[Math.floor(Math.random() * zRotationMatrices.length)];
+
+        finalRotationMatrix = rotationMatrixX.multiply(rotationMatrixY).multiply(rotationMatrixZ);
     }
 
-    return new BABYLON.Vector3(rotationX, rotationY, rotationZ);
+    return finalRotationMatrix;
 }
 
 
 
+/**
+ * Generates a random valid tetracube and places it in the given scene.
+ * The tetracube is placed at a random position and rotated randomly.
+ * @param scene - The scene to create the tetracube in.
+ * @returns The created tetracube.
+ */
 export function generateTetracube(scene: BABYLON.Scene): BABYLON.Mesh[] {
     const pickedTetracube: [BABYLON.Mesh[], "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3"] = pickRandomTetracube(scene);
     const tetracube: BABYLON.Mesh[] = pickedTetracube[0];
@@ -131,7 +159,7 @@ export function generateTetracube(scene: BABYLON.Scene): BABYLON.Mesh[] {
 
     const position: BABYLON.Vector3 = generateTetracubePosition(tetracube);
 
-    const rotation: BABYLON.Vector3 = generateTetracubeRotation(tetracube, position, type);
+    const rotation: BABYLON.Matrix = generateTetracubeRotation(tetracube, position, type);
 
     positionTetracube(tetracube, position);
 

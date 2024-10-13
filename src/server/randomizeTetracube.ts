@@ -8,7 +8,7 @@
  *
  * @returns A random tetracube type, one of "I", "LJ", "T", "SZ", "O", "Tower1", "Tower2", or "Tower3".
  */
-export function pickRandomTetracube(): string {
+export function pickRandomTetracube(): "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3" {
     const random = Math.floor(Math.random() * 8);
     switch (random) {
         case 0: return "I";
