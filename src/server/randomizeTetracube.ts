@@ -2,13 +2,18 @@
 //import { checkTetracubePosition } from "../client/checkTetracubePosition";
 //
 //
+import * as Matrices from "../client/rotationMatrices";
+
+export type TetracubeStringType = "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3";
+export type RotationStringType = "noRotation" | "rotationX90" | "rotationX180" | "rotationX270" | "rotationY90" | "rotationY180" | "rotationY270" | "rotationZ90" | "rotationZ180" | "rotationZ270";
+
 
 /**
  * Returns a random tetracube type as a string.
  *
  * @returns A random tetracube type, one of "I", "LJ", "T", "SZ", "O", "Tower1", "Tower2", or "Tower3".
  */
-export function pickRandomTetracube(): "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3" {
+export function pickRandomTetracube(): TetracubeStringType {
     const random = Math.floor(Math.random() * 8);
     switch (random) {
         case 0: return "I";
@@ -22,6 +27,29 @@ export function pickRandomTetracube(): "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" 
         default: return "I";
     }
 }
+
+
+/**
+ * Returns a random rotation as a string, one of "noRotation", "rotationX90", "rotationX180", "rotationX270", "rotationY90", "rotationY180", "rotationY270", "rotationZ90", "rotationZ180", or "rotationZ270".
+ *
+ * @returns A random rotation.
+ */
+export function pickRandomRotation(): RotationStringType {
+    switch (Math.floor(Math.random() * 10)) {
+        case 0: return "noRotation";
+        case 1: return "rotationX90";
+        case 2: return "rotationX180";
+        case 3: return "rotationX270";
+        case 4: return "rotationY90";
+        case 5: return "rotationY180";
+        case 6: return "rotationY270";
+        case 7: return "rotationZ90";
+        case 8: return "rotationZ180";
+        case 9: return "rotationZ270";
+        default: return "noRotation";
+    }
+}
+
 //
 //
 //export function generatePosition(): BABYLON.Vector3 {

@@ -2,6 +2,7 @@ import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { checkTetracubePosition, calculateTetracubeCubePosition } from "./checkTetracubePosition";
 import { checkTetracubeRotation } from "./checkTetracubeRotation";
 import * as Matrices from "./rotationMatrices";
+import { TetracubeStringType, RotationStringType } from "../server/randomizeTetracube";
 
 
 export class Tetracube {
@@ -25,13 +26,26 @@ export class Tetracube {
      * @param position - The position of the tetracube.
      * @param rotation - The rotation matrix of the tetracube.
      */
-    public generateSpecifiedTetracube(type: "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3", position: BABYLON.Vector3, rotation: BABYLON.Matrix): void {
+    public generateSpecifiedTetracube(type: TetracubeStringType, position: BABYLON.Vector3, rotation: RotationStringType): void {
         console.log(type, position, rotation);
         this.cubes = this.pickTetracube(type);
         this.type = type;
 
-        this.positionTetracube(new BABYLON.Vector3(position.x, position.y, position.z));
-        this.rotateTetracube(Matrices.noRotationMatrix);
+        this.positionTetracube(new BABYLON.Vector3(position._x, position._y, position._z));
+
+        switch (rotation) {
+            case 'noRotation': break;
+            case 'rotationX90': this.rotateTetracube(Matrices.rotationMatrixX90); break;
+            case 'rotationX180': this.rotateTetracube(Matrices.rotationMatrixX180); break;
+            case 'rotationX270': this.rotateTetracube(Matrices.rotationMatrixX270); break;
+            case 'rotationY90': this.rotateTetracube(Matrices.rotationMatrixY90); break;
+            case 'rotationY180': this.rotateTetracube(Matrices.rotationMatrixY180); break;
+            case 'rotationY270': this.rotateTetracube(Matrices.rotationMatrixY270); break;
+            case 'rotationZ90': this.rotateTetracube(Matrices.rotationMatrixZ90); break;
+            case 'rotationZ180': this.rotateTetracube(Matrices.rotationMatrixZ180); break;
+            case 'rotationZ270': this.rotateTetracube(Matrices.rotationMatrixZ270); break;
+            default: break;
+        }
     }
 
     /**
@@ -40,7 +54,7 @@ export class Tetracube {
      * The tetracube is then rotated randomly and placed at the generated position.
      */
     public generateTetracube(): void {
-        const pickedTetracube: [BABYLON.Mesh[], "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3"] = this.pickRandomTetracube();
+        const pickedTetracube: [BABYLON.Mesh[], TetracubeStringType] = this.pickRandomTetracube();
         this.cubes = pickedTetracube[0];
         this.type = pickedTetracube[1];
 
@@ -55,6 +69,7 @@ export class Tetracube {
      * @param position - The position to set the cubes at.
      */
     public positionTetracube(position: BABYLON.Vector3): void {
+        console.log(position);
         const translationMatrix = BABYLON.Matrix.Translation(position.x, position.y, position.z);
         this.cubes.forEach(cube => {
             cube.position = BABYLON.Vector3.TransformCoordinates(cube.position, translationMatrix);
@@ -280,6 +295,27 @@ export class Tetracube {
             case 6: return [this.createTower2_Tetracube(), "Tower2"];
             case 7: return [this.createTower3_Tetracube(), "Tower3"];
             default: return [this.createI_Tetracube(), "I"];
+        }
+    }
+
+    /**
+     * Returns a rotation matrix based on the given rotation string.
+     * @param rotation - The rotation string, one of "noRotation", "rotationX90", "rotationX180", "rotationX270", "rotationY90", "rotationY180", "rotationY270", "rotationZ90", "rotationZ180", or "rotationZ270".
+     * @returns A rotation matrix.
+     */
+    public pickRotation(rotation: RotationStringType): BABYLON.Matrix {
+        switch (rotation) {
+            case "noRotation": return Matrices.noRotationMatrix;
+            case "rotationX90": return Matrices.rotationMatrixX90;
+            case "rotationX180": return Matrices.rotationMatrixX180;
+            case "rotationX270": return Matrices.rotationMatrixX270;
+            case "rotationY90": return Matrices.rotationMatrixY90;
+            case "rotationY180": return Matrices.rotationMatrixY180;
+            case "rotationY270": return Matrices.rotationMatrixY270;
+            case "rotationZ90": return Matrices.rotationMatrixZ90;
+            case "rotationZ180": return Matrices.rotationMatrixZ180;
+            case "rotationZ270": return Matrices.rotationMatrixZ270;
+            default: return Matrices.noRotationMatrix;
         }
     }
 

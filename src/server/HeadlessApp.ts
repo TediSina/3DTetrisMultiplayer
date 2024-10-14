@@ -6,7 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { Server } from 'socket.io/dist/index';
-import { pickRandomTetracube } from './randomizeTetracube';
+import { pickRandomTetracube, pickRandomRotation, TetracubeStringType, RotationStringType } from './randomizeTetracube';
 import * as Matrices from "../client/rotationMatrices";
 
 
@@ -121,6 +121,14 @@ export class HeadlessApp {
                     if (room.players.includes(socket.id)) {
                         room.players = room.players.filter(player => player !== socket.id);
                         this.io.to(roomId).emit('playerLeft', socket.id);
+                        console.log(`Player ${socket.id} left room ${roomId}`);
+                        console.log(`Room ${roomId} has ${room.players.length} players`);
+
+                        if (room.players.length === 0) {
+                            delete this.rooms[roomId];
+                            console.log(`Room ${roomId} deleted`);
+                        }
+
                         break;
                     }
                 }
@@ -138,15 +146,15 @@ export class HeadlessApp {
         const room = this.rooms[roomId];
         if (!room) return;
 
-        const tetracube: "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3" = pickRandomTetracube();
-        const position = new BABYLON.Vector3(0, 5, 0); // Placeholder for generating position
-        const rotation = Matrices.rotationMatrixX90; // Placeholder for generating rotation
+        const tetracube: TetracubeStringType = pickRandomTetracube();
+        const position = new BABYLON.Vector3(4, 19, 4); // Placeholder for generating position
+        const rotation: RotationStringType = pickRandomRotation(); // Placeholder for generating rotation
         console.log(`Generated tetracube: ${tetracube}`);
         console.log(`Generated position: ${position}`);
         console.log(`Generated rotation: ${rotation}`);
 
         // Emit tetracube generation event to all players
-        this.io.to(roomId).emit('generateTetracube', [tetracube, position, rotation]);
+        this.io.to(roomId).emit('generateTetracube', {tetracube, position, rotation});
         //this.io.to(roomId).emit('update');
 
         // After generating a tetracube, notify the current player to control it
