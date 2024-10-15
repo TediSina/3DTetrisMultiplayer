@@ -32,8 +32,9 @@ export class Tetracube {
         this.type = type;
 
         this.positionTetracube(new BABYLON.Vector3(position._x, position._y, position._z));
+        console.log(rotation[0], rotation[1], rotation[2]);
 
-        const combinedRotation = this.combineStringifiedRotations(rotation[0], rotation[1], rotation[2]);
+        const combinedRotation: BABYLON.Matrix = this.combineStringifiedRotations(rotation[0], rotation[1], rotation[2]);
         console.log(combinedRotation);
         this.rotateTetracube(combinedRotation);
     }
@@ -73,6 +74,7 @@ export class Tetracube {
      * @param rotationMatrix - The rotation matrix to apply to the tetracube.
      */
     public rotateTetracube(rotationMatrix: BABYLON.Matrix): void {
+        console.log(rotationMatrix.m);
         // Find the center of the tetracube
         const center = this.calculateCenter();
 
@@ -97,10 +99,15 @@ export class Tetracube {
      * @returns The combined rotation matrix.
      */
     public combineStringifiedRotations(rotationX: string, rotationY: string, rotationZ: string): BABYLON.Matrix {
-        const rotationMatrixX = this.parseRotation(rotationX);
-        const rotationMatrixY = this.parseRotation(rotationY);
-        const rotationMatrixZ = this.parseRotation(rotationZ);
-        const rotationMatrix = rotationMatrixX.multiply(rotationMatrixY).multiply(rotationMatrixZ);
+        console.log(rotationX, rotationY, rotationZ);
+        const rotationMatrixX: BABYLON.Matrix = this.parseRotation(rotationX);
+        console.log(`${rotationMatrixX}`);
+        const rotationMatrixY: BABYLON.Matrix = this.parseRotation(rotationY);
+        console.log(`${rotationMatrixY}`);
+        const rotationMatrixZ: BABYLON.Matrix = this.parseRotation(rotationZ);
+        console.log(`${rotationMatrixZ}`);
+        const rotationMatrix: BABYLON.Matrix = rotationMatrixX.multiply(rotationMatrixY).multiply(rotationMatrixZ);
+        console.log(`${rotationMatrix}`);
         return rotationMatrix;
     }
 
@@ -122,6 +129,7 @@ export class Tetracube {
      * @returns The parsed rotation matrix as a BABYLON.Matrix.
      */
     public parseRotation(rotation: string): BABYLON.Matrix {
+        console.log(rotation);
         switch (rotation) {
             case "noRotation": return Matrices.noRotationMatrix;
             case "rotationX90": return Matrices.rotationMatrixX90;

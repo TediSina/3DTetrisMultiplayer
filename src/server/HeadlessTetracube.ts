@@ -361,25 +361,25 @@ export class HeadlessTetracube {
         let stringifiedFinalRotationMatrix: string[] = [];
 
         switch (rotationMatrixX) {
-            case Matrices.noRotationMatrix: stringifiedRotationMatrixX = "noRotationMatrix"; break;
-            case Matrices.rotationMatrixX90: stringifiedRotationMatrixX = "rotationMatrixX90"; break;
-            case Matrices.rotationMatrixX180: stringifiedRotationMatrixX = "rotationMatrixX180"; break;
-            case Matrices.rotationMatrixX270: stringifiedRotationMatrixX = "rotationMatrixX270"; break;
-            default: stringifiedRotationMatrixX = "noRotationMatrix";
+            case Matrices.noRotationMatrix: stringifiedRotationMatrixX = "noRotation"; break;
+            case Matrices.rotationMatrixX90: stringifiedRotationMatrixX = "rotationX90"; break;
+            case Matrices.rotationMatrixX180: stringifiedRotationMatrixX = "rotationX180"; break;
+            case Matrices.rotationMatrixX270: stringifiedRotationMatrixX = "rotationX270"; break;
+            default: stringifiedRotationMatrixX = "noRotation";
         }
         switch (rotationMatrixY) {
-            case Matrices.noRotationMatrix: stringifiedRotationMatrixY = "noRotationMatrix"; break;
-            case Matrices.rotationMatrixY90: stringifiedRotationMatrixY = "rotationMatrixY90"; break;
-            case Matrices.rotationMatrixY180: stringifiedRotationMatrixY = "rotationMatrixY180"; break;
-            case Matrices.rotationMatrixY270: stringifiedRotationMatrixY = "rotationMatrixY270"; break;
-            default: stringifiedRotationMatrixY = "noRotationMatrix";
+            case Matrices.noRotationMatrix: stringifiedRotationMatrixY = "noRotation"; break;
+            case Matrices.rotationMatrixY90: stringifiedRotationMatrixY = "rotationY90"; break;
+            case Matrices.rotationMatrixY180: stringifiedRotationMatrixY = "rotationY180"; break;
+            case Matrices.rotationMatrixY270: stringifiedRotationMatrixY = "rotationY270"; break;
+            default: stringifiedRotationMatrixY = "noRotation";
         }
         switch (rotationMatrixZ) {
-            case Matrices.noRotationMatrix: stringifiedRotationMatrixZ = "noRotationMatrix"; break;
-            case Matrices.rotationMatrixZ90: stringifiedRotationMatrixZ = "rotationMatrixZ90"; break;
-            case Matrices.rotationMatrixZ180: stringifiedRotationMatrixZ = "rotationMatrixZ180"; break;
-            case Matrices.rotationMatrixZ270: stringifiedRotationMatrixZ = "rotationMatrixZ270"; break;
-            default: stringifiedRotationMatrixZ = "noRotationMatrix";
+            case Matrices.noRotationMatrix: stringifiedRotationMatrixZ = "noRotation"; break;
+            case Matrices.rotationMatrixZ90: stringifiedRotationMatrixZ = "rotationZ90"; break;
+            case Matrices.rotationMatrixZ180: stringifiedRotationMatrixZ = "rotationZ180"; break;
+            case Matrices.rotationMatrixZ270: stringifiedRotationMatrixZ = "rotationZ270"; break;
+            default: stringifiedRotationMatrixZ = "noRotation";
         }
         stringifiedFinalRotationMatrix = [stringifiedRotationMatrixX, stringifiedRotationMatrixY, stringifiedRotationMatrixZ];
 
