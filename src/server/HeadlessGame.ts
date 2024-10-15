@@ -6,10 +6,14 @@ import { checkTetracubePosition, calculateTetracubeCubePosition } from "../clien
 import { checkTetracubeRotation, calculateTetracubeCubeRotation } from "../client/checkTetracubeRotation";
 import { HeadlessTetracube } from "./HeadlessTetracube";
 import * as Matrices from "../client/rotationMatrices";
-import * as GUI from "@babylonjs/gui/index";
+import { Server } from 'socket.io/dist/index';
+import { pickRandomTetracube, pickRandomRotation, TetracubeStringType, RotationStringType } from './randomizeTetracube';
+import { Room } from './HeadlessApp';
 
 
 export class HeadlessGame {
+    private io: Server;
+    private room: Room;
     private scene: BABYLON.Scene;
     public Tetracube: HeadlessTetracube;
     private timeStep = 0;
@@ -17,24 +21,21 @@ export class HeadlessGame {
     private matrixMap: number[][][] = [];
     public score = 0;
     public maxScore = 0;
-    private advancedTexture: GUI.AdvancedDynamicTexture;
-    private scoreText: GUI.TextBlock;
     public gameIsOver = false;
 
-    constructor(scene: BABYLON.Scene, maxScore: number = 0) {
+    /**
+     * Constructor for HeadlessGame.
+     * @param io - The server-side Socket.IO server.
+     * @param room - The room this game is in.
+     * @param scene - The scene this game is in.
+     * @param maxScore - The maximum score the player can get. Defaults to 0.
+     */
+    constructor(io: Server, room: Room, scene: BABYLON.Scene, maxScore: number = 0) {
+        this.io = io;
+        this.room = room;
         this.scene = scene;
         this.maxScore = maxScore;
-        this.Tetracube = new HeadlessTetracube(this.scene);
-
-        this.advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-        this.scoreText = new GUI.TextBlock();
-        this.scoreText.text = `Score: ${this.score}   Max Score: ${this.maxScore}`;
-        this.scoreText.color = "white";
-        this.scoreText.fontSize = 24;
-        this.scoreText.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-        this.scoreText.textVerticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
-        this.scoreText.top = "20px";
-        this.advancedTexture.addControl(this.scoreText);
+        this.Tetracube = new HeadlessTetracube(this.io, this.room, this.scene);
 
         this.initializeMatrixMap(10, 22, 10);
 
@@ -83,8 +84,6 @@ export class HeadlessGame {
                 Array(depth).fill(0)
             )
         );
-
-        console.log(this.matrixMap);
     }
 
     /**
@@ -298,12 +297,11 @@ export class HeadlessGame {
     }
 
     /**
-     * Adds a given score to the total score and updates the score text.
+     * Adds a given score to the total score.
      * @param score The score to add to the total score.
      */
     public addScore(score: number) {
         this.score += score;
-        this.scoreText.text = `Score: ${this.score}   Max Score: ${this.maxScore}`;
     }
 
     /**

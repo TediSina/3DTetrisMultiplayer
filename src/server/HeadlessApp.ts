@@ -6,12 +6,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { Server } from 'socket.io/dist/index';
-import { pickRandomTetracube, pickRandomRotation, TetracubeStringType, RotationStringType } from './randomizeTetracube';
-import * as Matrices from "../client/rotationMatrices";
 
 
 // Define the structure of a room
-interface Room {
+export interface Room {
+    roomId: string; // Unique identifier for the room
     players: string[]; // List of player socket IDs
     currentPlayerIndex: number; // Index of the current player
     maxPlayers: number; // The total number of players expected to join the room
@@ -56,7 +55,6 @@ export class HeadlessApp {
         const camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(-1.5, 9.5, 4.5), scene);
         camera.setPosition(new BABYLON.Vector3(-1.5, 9.5, 35));
 
-        //this.Game = new HeadlessGame(scene);
         //scene.render();
         //engine.resize();
         //this.Game.update();
@@ -77,7 +75,7 @@ export class HeadlessApp {
 
                 // Initialize room if not existing
                 if (!this.rooms[roomId]) {
-                    this.rooms[roomId] = { players: [], currentPlayerIndex: 0, maxPlayers, gameStarted: false };
+                    this.rooms[roomId] = { roomId: roomId, players: [], currentPlayerIndex: 0, maxPlayers, gameStarted: false };
                 }
 
                 const room = this.rooms[roomId];
@@ -100,18 +98,17 @@ export class HeadlessApp {
                     this.io.to(roomId).emit('gameStarting');
                     console.log(`Game started in room ${roomId}`);
 
-                    // Trigger tetracube generation for the first time
-                    this.generateTetracube(roomId);
+                    this.Game = new HeadlessGame(this.io, room, scene);
                 }
             });
 
-            socket.on('tetracubeGenerated', (roomId: string) => {
-                const room = this.rooms[roomId];
-                if (room) {
-                    // Generate the next tetracube after the current one is placed
-                    this.generateTetracube(roomId);
-                }
-            });
+            //socket.on('tetracubeGenerated', (roomId: string) => {
+            //    const room = this.rooms[roomId];
+            //    if (room) {
+            //        // Generate the next tetracube after the current one is placed
+            //        this.generateTetracube(roomId);
+            //    }
+            //});
 
             socket.on('disconnect', () => {
                 // Handle player disconnection and update the room
@@ -139,30 +136,6 @@ export class HeadlessApp {
         this.server.listen(this.port, () => {
             console.log(`Server is running at http://localhost:${this.port}`);
         });
-    }
-
-    // Generate a new tetracube for the current room
-    private generateTetracube(roomId: string) {
-        const room = this.rooms[roomId];
-        if (!room) return;
-
-        const tetracube: TetracubeStringType = pickRandomTetracube();
-        const position = new BABYLON.Vector3(4, 19, 4); // Placeholder for generating position
-        const rotation: RotationStringType = pickRandomRotation(); // Placeholder for generating rotation
-        console.log(`Generated tetracube: ${tetracube}`);
-        console.log(`Generated position: ${position}`);
-        console.log(`Generated rotation: ${rotation}`);
-
-        // Emit tetracube generation event to all players
-        this.io.to(roomId).emit('generateTetracube', {tetracube, position, rotation});
-        //this.io.to(roomId).emit('update');
-
-        // After generating a tetracube, notify the current player to control it
-        const currentPlayer = room.players[room.currentPlayerIndex];
-        this.io.to(currentPlayer).emit('controlTetracube');
-
-        // Move to the next player in the list for the next tetracube
-        // room.currentPlayerIndex = (room.currentPlayerIndex + 1) % room.players.length;
     }
 }
 

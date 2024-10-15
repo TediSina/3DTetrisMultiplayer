@@ -2,19 +2,49 @@ import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { checkTetracubePosition, calculateTetracubeCubePosition } from "../client/checkTetracubePosition";
 import { checkTetracubeRotation } from "../client/checkTetracubeRotation";
 import * as Matrices from "../client/rotationMatrices";
+import { Server } from 'socket.io/dist/index';
+import { pickRandomTetracube, pickRandomRotation, TetracubeStringType, RotationStringType } from './randomizeTetracube';
+import { Room } from './HeadlessApp';
 
 
 export class HeadlessTetracube {
+    private io: Server;
+    private room: Room;
     public cubes!: BABYLON.Mesh[];
     private scene: BABYLON.Scene;
     public type!: "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3";
 
     /**
-     * Constructor for the Tetracube class.
-     * @param scene The scene in which the tetracube should be rendered.
+     * Creates a new instance of HeadlessTetracube.
+     * @param io the Socket.IO server.
+     * @param room the room to generate tetracubes for.
+     * @param scene the scene to generate tetracubes in.
      */
-    constructor(scene: BABYLON.Scene) {
+    constructor(io: Server, room: Room, scene: BABYLON.Scene) {
+        this.io = io;
+        this.room = room;
         this.scene = scene;
+    }
+
+    /**
+     * Converts a rotation matrix to a RotationStringType.
+     * @param rotation The rotation matrix to convert.
+     * @returns The rotation as a string.
+     */
+    public stringifyRotation(rotation: BABYLON.Matrix): RotationStringType {
+        switch (rotation) {
+            case Matrices.noRotationMatrix: return "noRotation";
+            case Matrices.rotationMatrixX90: return "rotationX90";
+            case Matrices.rotationMatrixX180: return "rotationX180";
+            case Matrices.rotationMatrixX270: return "rotationX270";
+            case Matrices.rotationMatrixY90: return "rotationY90";
+            case Matrices.rotationMatrixY180: return "rotationY180";
+            case Matrices.rotationMatrixY270: return "rotationY270";
+            case Matrices.rotationMatrixZ90: return "rotationZ90";
+            case Matrices.rotationMatrixZ180: return "rotationZ180";
+            case Matrices.rotationMatrixZ270: return "rotationZ270";
+            default: return "noRotation";
+        }
     }
 
     /**
@@ -22,15 +52,28 @@ export class HeadlessTetracube {
      * The tetracube is picked randomly from the 8 possible tetracubes and a random valid position is generated.
      * The tetracube is then rotated randomly and placed at the generated position.
      */
-    public generateTetracube(): void {
-        const pickedTetracube: [BABYLON.Mesh[], "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3"] = this.pickRandomTetracube();
-        this.cubes = pickedTetracube[0];
-        this.type = pickedTetracube[1];
+    public generateTetracube() {
+        const tetracube: TetracubeStringType = pickRandomTetracube();
+        this.cubes = this.pickTetracube(tetracube);
+        this.type = tetracube;
+        const position: BABYLON.Vector3 = this.generatePosition();
+        const rotationResult: any[] = this.generateRotation(position, this.type);
+        const rotation: BABYLON.Matrix = rotationResult[0];
+        const stringifiedRotation: string[] = rotationResult[1];
+        console.log(`Generated tetracube: ${tetracube}`);
+        console.log(`Generated position: ${position}`);
+        console.log(`Generated rotation: ${rotation}`);
 
-        const position = this.generatePosition();
-        const rotation = this.generateRotation(position, this.type);
-        this.positionTetracube(position);
-        this.rotateTetracube(rotation);
+        // Emit tetracube generation event to all players
+        this.io.to(this.room.roomId).emit('generateTetracube', {tetracube, position, stringifiedRotation});
+        //this.io.to(roomId).emit('update');
+
+        // After generating a tetracube, notify the current player to control it
+        const currentPlayer = this.room.players[this.room.currentPlayerIndex];
+        this.io.to(currentPlayer).emit('controlTetracube');
+
+        // Move to the next player in the list for the next tetracube
+        // room.currentPlayerIndex = (room.currentPlayerIndex + 1) % room.players.length;
     }
 
     /**
@@ -288,7 +331,7 @@ export class HeadlessTetracube {
      * @param position - The current position of the tetracube.
      * @returns The generated rotation.
      */
-    public generateRotation(position: BABYLON.Vector3, type: "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3"): BABYLON.Matrix {
+    public generateRotation(position: BABYLON.Vector3, type: "T" | "I" | "O" | "LJ" | "SZ" | "Tower1" | "Tower2" | "Tower3"): any[] {
         const cubePositions = calculateTetracubeCubePosition(this.cubes, position);
 
         // Arrays of predefined rotation matrices for each axis
@@ -312,7 +355,35 @@ export class HeadlessTetracube {
             finalRotationMatrix = rotationMatrixX.multiply(rotationMatrixY).multiply(rotationMatrixZ);
         }
 
-        return finalRotationMatrix;
+        let stringifiedRotationMatrixX: string;
+        let stringifiedRotationMatrixY: string;
+        let stringifiedRotationMatrixZ: string;
+        let stringifiedFinalRotationMatrix: string[] = [];
+
+        switch (rotationMatrixX) {
+            case Matrices.noRotationMatrix: stringifiedRotationMatrixX = "noRotationMatrix"; break;
+            case Matrices.rotationMatrixX90: stringifiedRotationMatrixX = "rotationMatrixX90"; break;
+            case Matrices.rotationMatrixX180: stringifiedRotationMatrixX = "rotationMatrixX180"; break;
+            case Matrices.rotationMatrixX270: stringifiedRotationMatrixX = "rotationMatrixX270"; break;
+            default: stringifiedRotationMatrixX = "noRotationMatrix";
+        }
+        switch (rotationMatrixY) {
+            case Matrices.noRotationMatrix: stringifiedRotationMatrixY = "noRotationMatrix"; break;
+            case Matrices.rotationMatrixY90: stringifiedRotationMatrixY = "rotationMatrixY90"; break;
+            case Matrices.rotationMatrixY180: stringifiedRotationMatrixY = "rotationMatrixY180"; break;
+            case Matrices.rotationMatrixY270: stringifiedRotationMatrixY = "rotationMatrixY270"; break;
+            default: stringifiedRotationMatrixY = "noRotationMatrix";
+        }
+        switch (rotationMatrixZ) {
+            case Matrices.noRotationMatrix: stringifiedRotationMatrixZ = "noRotationMatrix"; break;
+            case Matrices.rotationMatrixZ90: stringifiedRotationMatrixZ = "rotationMatrixZ90"; break;
+            case Matrices.rotationMatrixZ180: stringifiedRotationMatrixZ = "rotationMatrixZ180"; break;
+            case Matrices.rotationMatrixZ270: stringifiedRotationMatrixZ = "rotationMatrixZ270"; break;
+            default: stringifiedRotationMatrixZ = "noRotationMatrix";
+        }
+        stringifiedFinalRotationMatrix = [stringifiedRotationMatrixX, stringifiedRotationMatrixY, stringifiedRotationMatrixZ];
+
+        return [finalRotationMatrix, stringifiedFinalRotationMatrix];
     }
 
     /**

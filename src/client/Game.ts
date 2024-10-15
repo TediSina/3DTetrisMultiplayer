@@ -74,7 +74,7 @@ export class Game {
 
         socketOn(this.socket, 'generateTetracube', (data) => {
             console.log(data);
-            this.Tetracube.generateSpecifiedTetracube(data.tetracube, data.position, data.rotation);
+            this.Tetracube.generateSpecifiedTetracube(data.tetracube, data.position, data.stringifiedRotation);
             this.updateMatrixMap(this.Tetracube.getCubes(), 1);
 
             console.log(this.Tetracube);

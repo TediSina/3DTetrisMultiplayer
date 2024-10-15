@@ -26,26 +26,16 @@ export class Tetracube {
      * @param position - The position of the tetracube.
      * @param rotation - The rotation matrix of the tetracube.
      */
-    public generateSpecifiedTetracube(type: TetracubeStringType, position: BABYLON.Vector3, rotation: RotationStringType): void {
+    public generateSpecifiedTetracube(type: TetracubeStringType, position: BABYLON.Vector3, rotation: string[]): void {
         console.log(type, position, rotation);
         this.cubes = this.pickTetracube(type);
         this.type = type;
 
         this.positionTetracube(new BABYLON.Vector3(position._x, position._y, position._z));
 
-        switch (rotation) {
-            case 'noRotation': break;
-            case 'rotationX90': this.rotateTetracube(Matrices.rotationMatrixX90); break;
-            case 'rotationX180': this.rotateTetracube(Matrices.rotationMatrixX180); break;
-            case 'rotationX270': this.rotateTetracube(Matrices.rotationMatrixX270); break;
-            case 'rotationY90': this.rotateTetracube(Matrices.rotationMatrixY90); break;
-            case 'rotationY180': this.rotateTetracube(Matrices.rotationMatrixY180); break;
-            case 'rotationY270': this.rotateTetracube(Matrices.rotationMatrixY270); break;
-            case 'rotationZ90': this.rotateTetracube(Matrices.rotationMatrixZ90); break;
-            case 'rotationZ180': this.rotateTetracube(Matrices.rotationMatrixZ180); break;
-            case 'rotationZ270': this.rotateTetracube(Matrices.rotationMatrixZ270); break;
-            default: break;
-        }
+        const combinedRotation = this.combineStringifiedRotations(rotation[0], rotation[1], rotation[2]);
+        console.log(combinedRotation);
+        this.rotateTetracube(combinedRotation);
     }
 
     /**
@@ -97,6 +87,54 @@ export class Tetracube {
                 Math.round(rotatedPosition.z + center.z)
             );
         });
+    }
+
+    /**
+     * Combines the three given string representations of rotations into a single rotation matrix.
+     * @param rotationX - The string representation of the rotation around the x-axis.
+     * @param rotationY - The string representation of the rotation around the y-axis.
+     * @param rotationZ - The string representation of the rotation around the z-axis.
+     * @returns The combined rotation matrix.
+     */
+    public combineStringifiedRotations(rotationX: string, rotationY: string, rotationZ: string): BABYLON.Matrix {
+        const rotationMatrixX = this.parseRotation(rotationX);
+        const rotationMatrixY = this.parseRotation(rotationY);
+        const rotationMatrixZ = this.parseRotation(rotationZ);
+        const rotationMatrix = rotationMatrixX.multiply(rotationMatrixY).multiply(rotationMatrixZ);
+        return rotationMatrix;
+    }
+
+    /**
+     * Parses a string representation of a rotation matrix and returns the corresponding BABYLON.Matrix.
+     * The rotation string can be one of the following:
+     * - "noRotation"
+     * - "rotationX90"
+     * - "rotationX180"
+     * - "rotationX270"
+     * - "rotationY90"
+     * - "rotationY180"
+     * - "rotationY270"
+     * - "rotationZ90"
+     * - "rotationZ180"
+     * - "rotationZ270"
+     * If the given string does not match any of the above, the function returns the noRotationMatrix.
+     * @param rotation - The string representation of the rotation matrix.
+     * @returns The parsed rotation matrix as a BABYLON.Matrix.
+     */
+    public parseRotation(rotation: string): BABYLON.Matrix {
+        switch (rotation) {
+            case "noRotation": return Matrices.noRotationMatrix;
+            case "rotationX90": return Matrices.rotationMatrixX90;
+            case "rotationX180": return Matrices.rotationMatrixX180;
+            case "rotationX270": return Matrices.rotationMatrixX270;
+            case "rotationY90": return Matrices.rotationMatrixY90;
+            case "rotationY180": return Matrices.rotationMatrixY180;
+            case "rotationY270": return Matrices.rotationMatrixY270;
+            case "rotationZ90": return Matrices.rotationMatrixZ90;
+            case "rotationZ180": return Matrices.rotationMatrixZ180;
+            case "rotationZ270": return Matrices.rotationMatrixZ270;
+            default: return Matrices.noRotationMatrix;
+        }
     }
 
     /**
