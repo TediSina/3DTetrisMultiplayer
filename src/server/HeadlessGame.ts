@@ -16,7 +16,7 @@ export class HeadlessGame {
     private room: Room;
     private scene: BABYLON.Scene;
     public Tetracube: HeadlessTetracube;
-    private timeStep = 0;
+    public timeStep = 0;
     private timeCheck = 60;
     private matrixMap: number[][][] = [];
     public score = 0;
@@ -96,7 +96,7 @@ export class HeadlessGame {
             const x = cube.position.x;
             const y = cube.position.y;
             const z = cube.position.z;
-            
+
             if (
                 x >= 0 && x <= 9 &&
                 y >= 0 && y <= 22 &&
@@ -149,7 +149,7 @@ export class HeadlessGame {
     private cubesHaveCollided(): boolean {
         const tetracubeCubes = this.Tetracube.getCubes();
         const occupiedPositions = new Set();
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -158,12 +158,12 @@ export class HeadlessGame {
         }
 
         console.log(occupiedPositions);
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
             const z = Math.floor(cube.position.z);
-    
+
             if (
                 x >= 0 && x <= 9 &&
                 y >= 0 && y <= 22 &&
@@ -175,7 +175,7 @@ export class HeadlessGame {
                 }
             }
         }
-    
+
         return false;
     }
 
@@ -186,7 +186,7 @@ export class HeadlessGame {
      */
     public getMeshByPosition(targetPosition: BABYLON.Vector3): BABYLON.AbstractMesh | null {
         const meshes = this.scene.meshes;
-        
+
         for (let i = 0; i < meshes.length; i++) {
             let mesh = meshes[i];
 
@@ -274,10 +274,10 @@ export class HeadlessGame {
      */
     public getFullRows(): number[] {
         let fullRows: number[] = [];
-    
+
         for (let y = 0; y < 22; y++) {
             let isFull = true;
-    
+
             for (let x = 0; x < 10; x++) {
                 for (let z = 0; z < 10; z++) {
                     if (this.matrixMap[x][y][z] === 0) {
@@ -287,12 +287,12 @@ export class HeadlessGame {
                 }
                 if (!isFull) break;
             }
-    
+
             if (isFull) {
                 fullRows.push(y);
             }
         }
-    
+
         return fullRows;
     }
 
@@ -350,13 +350,15 @@ export class HeadlessGame {
                 }
 
                 this.Tetracube.generateTetracube();
+                console.log("Tetracube has reached bottom");
             }
-            
+
             const positionIsValid = checkTetracubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, -1, 0));
 
             if (positionIsValid && !this.cubesHaveCollided()) {
                 this.moveTetracubeDown();
                 this.addScore(1);
+                this.io.to(this.room.roomId).emit("moveTetracubeDown");
             } else {
                 if (!this.checkMatrixMap()) {
                     this.gameIsOver = true;
@@ -379,7 +381,7 @@ export class HeadlessGame {
     public checkW(): boolean {
         const tetracubeCubes = this.Tetracube.getCubes();
         const occupiedPositions = new Set();
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -388,12 +390,12 @@ export class HeadlessGame {
         }
 
         console.log(occupiedPositions);
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
             const z = Math.floor(cube.position.z);
-    
+
             if (
                 x >= 0 && x <= 9 &&
                 y >= 0 && y <= 22 &&
@@ -410,7 +412,7 @@ export class HeadlessGame {
                 }
             }
         }
-    
+
         return true;
     }
 
@@ -437,7 +439,7 @@ export class HeadlessGame {
     public checkS(): boolean {
         const tetracubeCubes = this.Tetracube.getCubes();
         const occupiedPositions = new Set();
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -446,12 +448,12 @@ export class HeadlessGame {
         }
 
         console.log(occupiedPositions);
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
             const z = Math.floor(cube.position.z);
-    
+
             if (
                 x >= 0 && x <= 9 &&
                 y >= 0 && y <= 22 &&
@@ -468,7 +470,7 @@ export class HeadlessGame {
                 }
             }
         }
-    
+
         return true;
     }
 
@@ -495,7 +497,7 @@ export class HeadlessGame {
     public checkA(): boolean {
         const tetracubeCubes = this.Tetracube.getCubes();
         const occupiedPositions = new Set();
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -504,12 +506,12 @@ export class HeadlessGame {
         }
 
         console.log(occupiedPositions);
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
             const z = Math.floor(cube.position.z);
-    
+
             if (
                 x >= 0 && x <= 9 &&
                 y >= 0 && y <= 22 &&
@@ -526,7 +528,7 @@ export class HeadlessGame {
                 }
             }
         }
-    
+
         return true;
     }
 
@@ -553,7 +555,7 @@ export class HeadlessGame {
     public checkD(): boolean {
         const tetracubeCubes = this.Tetracube.getCubes();
         const occupiedPositions = new Set();
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -562,12 +564,12 @@ export class HeadlessGame {
         }
 
         console.log(occupiedPositions);
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
             const z = Math.floor(cube.position.z);
-    
+
             if (
                 x >= 0 && x <= 9 &&
                 y >= 0 && y <= 22 &&
@@ -584,7 +586,7 @@ export class HeadlessGame {
                 }
             }
         }
-    
+
         return true;
     }
 
@@ -599,7 +601,7 @@ export class HeadlessGame {
             this.Tetracube.getCubes().forEach(cube => {
                 cube.position = new BABYLON.Vector3(cube.position.x - 1, cube.position.y, cube.position.z);
             });
-            
+
             this.updateMatrixMap(this.Tetracube.getCubes(), 1);
         }
     }
@@ -625,7 +627,7 @@ export class HeadlessGame {
         console.log(currentOccupiedPositions);
 
         const calculatedOccupiedPositions: Set<string> = new Set();
-    
+
         for (const position of calculatedCubePositions) {
             const x = Math.floor(position.x);
             const y = Math.floor(position.y);
@@ -695,7 +697,7 @@ export class HeadlessGame {
         console.log(currentOccupiedPositions);
 
         const calculatedOccupiedPositions: Set<string> = new Set();
-    
+
         for (const position of calculatedCubePositions) {
             const x = Math.floor(position.x);
             const y = Math.floor(position.y);
@@ -765,7 +767,7 @@ export class HeadlessGame {
         console.log(currentOccupiedPositions);
 
         const calculatedOccupiedPositions: Set<string> = new Set();
-    
+
         for (const position of calculatedCubePositions) {
             const x = Math.floor(position.x);
             const y = Math.floor(position.y);

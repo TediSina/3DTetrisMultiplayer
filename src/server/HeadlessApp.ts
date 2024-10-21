@@ -69,6 +69,7 @@ export class HeadlessApp {
         const maxPlayers = 2;
 
         this.io.on('connection', (socket) => {
+            console.log(`Player ${socket.id} connected`);
             socket.on('joinRoom', (roomId: string) => {
                 console.log(`Player ${socket.id} joined room ${roomId}`);
                 socket.join(roomId);
@@ -99,6 +100,20 @@ export class HeadlessApp {
                     console.log(`Game started in room ${roomId}`);
 
                     this.Game = new HeadlessGame(this.io, room, scene);
+
+                    engine.runRenderLoop(() => {
+                        if (this.Game.gameIsOver === false || room.players.length > 0) {
+                            this.Game.update();
+                        } else {
+                            this.Game.gameIsOver = true;
+                            engine.stopRenderLoop();
+                        }
+                    });
+
+                    this.io.on("shiftKeyPressed", () => {
+                        this.Game.timeStep += 10;
+                        console.log(this.Game.timeStep);
+                    });
                 }
             });
 
@@ -115,6 +130,7 @@ export class HeadlessApp {
                 console.log(`Player ${socket.id} disconnected`);
                 for (const roomId in this.rooms) {
                     const room = this.rooms[roomId];
+
                     if (room.players.includes(socket.id)) {
                         room.players = room.players.filter(player => player !== socket.id);
                         this.io.to(roomId).emit('playerLeft', socket.id);
@@ -124,6 +140,8 @@ export class HeadlessApp {
                         if (room.players.length === 0) {
                             delete this.rooms[roomId];
                             console.log(`Room ${roomId} deleted`);
+                            this.Game.gameIsOver = true;
+                            engine.stopRenderLoop();
                         }
 
                         break;

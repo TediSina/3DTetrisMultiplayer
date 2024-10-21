@@ -60,11 +60,12 @@ class App {
             if (!this.gameIsOver) {
                 this.scene.render();
 
-                if (this.Game && !this.Game.gameIsOver) {
-                    socketOn(this.socket, "update", () => {
-                        this.Game.update();
-                    });
-                }
+                //if (this.Game && !this.Game.gameIsOver) {
+                //    socketOn(this.socket, "update", (callback) => {
+                //        this.Game.update();
+                //        callback("Updated");
+                //    });
+                //}
             } else {
                 this.scene.dispose();
 
@@ -81,11 +82,12 @@ class App {
 
                 nextScene.render();
 
-                if (this.Game && !this.Game.gameIsOver) {
-                    socketOn(this.socket, "update", () => {
-                        this.Game.update();
-                    });
-                }
+                //if (this.Game && !this.Game.gameIsOver) {
+                //    socketOn(this.socket, "update", (callback) => {
+                //        this.Game.update();
+                //        callback("Updated");
+                //    });
+                //}
             }
         });
     }
@@ -138,33 +140,35 @@ class App {
                     engine.runRenderLoop(() => {
                         if (!this.gameIsOver) {
                             this.scene.render();
-            
-                            if (this.Game && !this.Game.gameIsOver) {
-                                socketOn(this.socket, "update", () => {
-                                    this.Game.update();
-                                });
-                            }
+
+                            //if (this.Game && !this.Game.gameIsOver) {
+                            //    socketOn(this.socket, "update", (callback) => {
+                            //        this.Game.update();
+                            //        callback("Updated");
+                            //    });
+                            //}
                         } else {
                             this.scene.dispose();
-            
+
                             const nextScene = new BABYLON.Scene(engine);
                             this.createScene(nextScene);
                             this.scene = nextScene;
-            
+
                             const camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(4.5, 9.5, 4.5), this.scene);
                             camera.setPosition(new BABYLON.Vector3(4.5, 9.5, 35));
                             camera.attachControl(this.canvas, true);
-            
+
                             const light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this.scene);
                             light.intensity = 0.7;
-            
+
                             nextScene.render();
-            
-                            if (this.Game && !this.Game.gameIsOver) {
-                                socketOn(this.socket, "update", () => {
-                                    this.Game.update();
-                                });
-                            }
+
+                            //if (this.Game && !this.Game.gameIsOver) {
+                            //    socketOn(this.socket, "update", (callback) => {
+                            //        this.Game.update();
+                            //        callback("Updated");
+                            //    });
+                            //}
                         }
                     });
                 }

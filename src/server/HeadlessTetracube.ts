@@ -65,8 +65,11 @@ export class HeadlessTetracube {
         console.log(`Generated rotation: ${rotation}`);
 
         // Emit tetracube generation event to all players
-        this.io.to(this.room.roomId).emit('generateTetracube', {tetracube, position, stringifiedRotation});
+        this.io.to(this.room.roomId).emit('generateTetracube', { tetracube, position, stringifiedRotation });
         //this.io.to(roomId).emit('update');
+
+        this.positionTetracube(position);
+        this.rotateTetracube(rotation);
 
         // After generating a tetracube, notify the current player to control it
         const currentPlayer = this.room.players[this.room.currentPlayerIndex];

@@ -80,6 +80,11 @@ export class Game {
             console.log(this.Tetracube);
             console.log(this.Tetracube.cubes);
         });
+
+        socketOn(this.socket, "moveTetracubeDown", () => {
+            this.moveTetracubeDown();
+            this.addScore(1);
+        });
     }
 
     /**
@@ -108,7 +113,7 @@ export class Game {
             const x = cube.position.x;
             const y = cube.position.y;
             const z = cube.position.z;
-            
+
             if (
                 x >= 0 && x <= 9 &&
                 y >= 0 && y <= 22 &&
@@ -161,7 +166,7 @@ export class Game {
     private cubesHaveCollided(): boolean {
         const tetracubeCubes = this.Tetracube.getCubes();
         const occupiedPositions = new Set();
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -170,12 +175,12 @@ export class Game {
         }
 
         console.log(occupiedPositions);
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
             const z = Math.floor(cube.position.z);
-    
+
             if (
                 x >= 0 && x <= 9 &&
                 y >= 0 && y <= 22 &&
@@ -187,7 +192,7 @@ export class Game {
                 }
             }
         }
-    
+
         return false;
     }
 
@@ -198,7 +203,7 @@ export class Game {
      */
     public getMeshByPosition(targetPosition: BABYLON.Vector3): BABYLON.AbstractMesh | null {
         const meshes = this.scene.meshes;
-        
+
         for (let i = 0; i < meshes.length; i++) {
             let mesh = meshes[i];
 
@@ -286,10 +291,10 @@ export class Game {
      */
     public getFullRows(): number[] {
         let fullRows: number[] = [];
-    
+
         for (let y = 0; y < 22; y++) {
             let isFull = true;
-    
+
             for (let x = 0; x < 10; x++) {
                 for (let z = 0; z < 10; z++) {
                     if (this.matrixMap[x][y][z] === 0) {
@@ -299,12 +304,12 @@ export class Game {
                 }
                 if (!isFull) break;
             }
-    
+
             if (isFull) {
                 fullRows.push(y);
             }
         }
-    
+
         return fullRows;
     }
 
@@ -347,6 +352,7 @@ export class Game {
      * Increments the time step and resets it to 0 when it reaches the time check.
      */
     public update(): void {
+        console.log("Updating...");
         if (this.timeStep >= this.timeCheck) {
             if (this.getFullRows().length > 0) {
                 this.addScore(3000 * this.getFullRows().length);
@@ -364,7 +370,7 @@ export class Game {
 
                 this.Tetracube.generateTetracube();
             }
-            
+
             const positionIsValid = checkTetracubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, -1, 0));
 
             if (positionIsValid && !this.cubesHaveCollided()) {
@@ -392,7 +398,7 @@ export class Game {
     public checkW(): boolean {
         const tetracubeCubes = this.Tetracube.getCubes();
         const occupiedPositions = new Set();
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -401,12 +407,12 @@ export class Game {
         }
 
         console.log(occupiedPositions);
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
             const z = Math.floor(cube.position.z);
-    
+
             if (
                 x >= 0 && x <= 9 &&
                 y >= 0 && y <= 22 &&
@@ -423,7 +429,7 @@ export class Game {
                 }
             }
         }
-    
+
         return true;
     }
 
@@ -450,7 +456,7 @@ export class Game {
     public checkS(): boolean {
         const tetracubeCubes = this.Tetracube.getCubes();
         const occupiedPositions = new Set();
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -459,12 +465,12 @@ export class Game {
         }
 
         console.log(occupiedPositions);
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
             const z = Math.floor(cube.position.z);
-    
+
             if (
                 x >= 0 && x <= 9 &&
                 y >= 0 && y <= 22 &&
@@ -481,7 +487,7 @@ export class Game {
                 }
             }
         }
-    
+
         return true;
     }
 
@@ -508,7 +514,7 @@ export class Game {
     public checkA(): boolean {
         const tetracubeCubes = this.Tetracube.getCubes();
         const occupiedPositions = new Set();
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -517,12 +523,12 @@ export class Game {
         }
 
         console.log(occupiedPositions);
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
             const z = Math.floor(cube.position.z);
-    
+
             if (
                 x >= 0 && x <= 9 &&
                 y >= 0 && y <= 22 &&
@@ -539,7 +545,7 @@ export class Game {
                 }
             }
         }
-    
+
         return true;
     }
 
@@ -566,7 +572,7 @@ export class Game {
     public checkD(): boolean {
         const tetracubeCubes = this.Tetracube.getCubes();
         const occupiedPositions = new Set();
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -575,12 +581,12 @@ export class Game {
         }
 
         console.log(occupiedPositions);
-    
+
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
             const z = Math.floor(cube.position.z);
-    
+
             if (
                 x >= 0 && x <= 9 &&
                 y >= 0 && y <= 22 &&
@@ -597,7 +603,7 @@ export class Game {
                 }
             }
         }
-    
+
         return true;
     }
 
@@ -612,7 +618,7 @@ export class Game {
             this.Tetracube.getCubes().forEach(cube => {
                 cube.position = new BABYLON.Vector3(cube.position.x - 1, cube.position.y, cube.position.z);
             });
-            
+
             this.updateMatrixMap(this.Tetracube.getCubes(), 1);
         }
     }
@@ -638,7 +644,7 @@ export class Game {
         console.log(currentOccupiedPositions);
 
         const calculatedOccupiedPositions: Set<string> = new Set();
-    
+
         for (const position of calculatedCubePositions) {
             const x = Math.floor(position.x);
             const y = Math.floor(position.y);
@@ -708,7 +714,7 @@ export class Game {
         console.log(currentOccupiedPositions);
 
         const calculatedOccupiedPositions: Set<string> = new Set();
-    
+
         for (const position of calculatedCubePositions) {
             const x = Math.floor(position.x);
             const y = Math.floor(position.y);
@@ -778,7 +784,7 @@ export class Game {
         console.log(currentOccupiedPositions);
 
         const calculatedOccupiedPositions: Set<string> = new Set();
-    
+
         for (const position of calculatedCubePositions) {
             const x = Math.floor(position.x);
             const y = Math.floor(position.y);
@@ -874,7 +880,8 @@ export class Game {
                 this.rotateR();
                 break;
             case "shift":
-                this.timeStep += 10;
+                this.socket.emit("shiftKeyPressed");
+                console.log("Shift key pressed");
                 break;
             case "escape":
                 this.gameIsOver = true;
