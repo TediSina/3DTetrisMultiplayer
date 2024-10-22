@@ -110,7 +110,7 @@ export class HeadlessApp {
                         }
                     });
 
-                    this.io.on("shiftKeyPressed", () => {
+                    socket.on("shiftKeyPressed", () => {
                         this.Game.timeStep += 10;
                         console.log(this.Game.timeStep);
                     });
