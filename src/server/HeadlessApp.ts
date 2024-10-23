@@ -99,6 +99,8 @@ export class HeadlessApp {
                     this.io.to(roomId).emit('gameStarting');
                     console.log(`Game started in room ${roomId}`);
 
+                    this.io.to(room.players[room.currentPlayerIndex]).emit("tetracubeControl");
+
                     this.Game = new HeadlessGame(this.io, room, scene);
 
                     engine.runRenderLoop(() => {
@@ -109,12 +111,14 @@ export class HeadlessApp {
                             engine.stopRenderLoop();
                         }
                     });
+                }
 
-                    socket.on("shiftKeyPressed", () => {
+                socket.on("shiftKeyPressed", () => {
+                    if (socket.id === room.players[room.currentPlayerIndex]) {
                         this.Game.timeStep += 10;
                         console.log(this.Game.timeStep);
-                    });
-                }
+                    }
+                });
             });
 
             //socket.on('tetracubeGenerated', (roomId: string) => {

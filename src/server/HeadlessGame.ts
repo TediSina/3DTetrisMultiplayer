@@ -350,6 +350,15 @@ export class HeadlessGame {
                 }
 
                 this.Tetracube.generateTetracube();
+                if (this.room.currentPlayerIndex < this.room.players.length - 1) {
+                    this.io.to(this.room.players[this.room.currentPlayerIndex]).emit("removeTetracubeControl");
+                    this.room.currentPlayerIndex++;
+                    this.io.to(this.room.players[this.room.currentPlayerIndex]).emit("tetracubeControl");
+                } else {
+                    this.io.to(this.room.players[this.room.currentPlayerIndex]).emit("removeTetracubeControl");
+                    this.room.currentPlayerIndex = 0;
+                    this.io.to(this.room.players[this.room.currentPlayerIndex]).emit("tetracubeControl");
+                }
                 console.log("Tetracube has reached bottom");
             }
 
@@ -366,6 +375,15 @@ export class HeadlessGame {
                 }
 
                 this.Tetracube.generateTetracube();
+                if (this.room.currentPlayerIndex < this.room.players.length - 1) {
+                    this.io.to(this.room.players[this.room.currentPlayerIndex]).emit("removeTetracubeControl");
+                    this.room.currentPlayerIndex++;
+                    this.io.to(this.room.players[this.room.currentPlayerIndex]).emit("tetracubeControl");
+                } else {
+                    this.io.to(this.room.players[this.room.currentPlayerIndex]).emit("removeTetracubeControl");
+                    this.room.currentPlayerIndex = 0;
+                    this.io.to(this.room.players[this.room.currentPlayerIndex]).emit("tetracubeControl");
+                }
             }
 
             this.timeStep = 0;

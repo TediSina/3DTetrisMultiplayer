@@ -22,6 +22,7 @@ export class Game {
     public maxScore = 0;
     private advancedTexture: GUI.AdvancedDynamicTexture;
     private scoreText: GUI.TextBlock;
+    private controlText: GUI.TextBlock;
     public gameIsOver = false;
 
     constructor(socket: Socket, scene: BABYLON.Scene, maxScore: number = 0) {
@@ -40,6 +41,15 @@ export class Game {
         this.scoreText.textVerticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
         this.scoreText.top = "20px";
         this.advancedTexture.addControl(this.scoreText);
+
+        this.controlText = new GUI.TextBlock();
+        this.controlText.text = "You do not control the tetracube";
+        this.controlText.color = "red";
+        this.controlText.fontSize = 24;
+        this.controlText.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+        this.controlText.textVerticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
+        this.controlText.top = "60px";
+        this.advancedTexture.addControl(this.controlText);
 
         this.initializeMatrixMap(10, 22, 10);
 
@@ -84,6 +94,16 @@ export class Game {
         socketOn(this.socket, "moveTetracubeDown", () => {
             this.moveTetracubeDown();
             this.addScore(1);
+        });
+
+        socketOn(this.socket, "tetracubeControl" , () => {
+            this.controlText.text = "You control the tetracube";
+            this.controlText.color = "green";
+        });
+
+        socketOn(this.socket, "removeTetracubeControl" , () => {
+            this.controlText.text = "You do not control the tetracube";
+            this.controlText.color = "red";
         });
     }
 
