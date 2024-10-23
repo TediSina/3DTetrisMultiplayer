@@ -91,6 +91,34 @@ export class Game {
             console.log(this.Tetracube.cubes);
         });
 
+        socketOn(this.socket, "moveW" , () => {
+            this.moveW();
+        });
+
+        socketOn(this.socket, "moveS" , () => {
+            this.moveS();
+        });
+
+        socketOn(this.socket, "moveA" , () => {
+            this.moveA();
+        });
+
+        socketOn(this.socket, "moveD" , () => {
+            this.moveD();
+        });
+
+        socketOn(this.socket, "rotateQ" , () => {
+            this.rotateQ();
+        });
+
+        socketOn(this.socket, "rotateE" , () => {
+            this.rotateE();
+        });
+
+        socketOn(this.socket, "rotateR" , () => {
+            this.rotateR();
+        });
+
         socketOn(this.socket, "moveTetracubeDown", () => {
             this.moveTetracubeDown();
             this.addScore(1);
@@ -871,41 +899,40 @@ export class Game {
      */
     public keyDown(event: KeyboardEvent): void {
         switch (event.key.toLowerCase()) {
-            case "g":
-                if (!this.checkMatrixMap()) {
-                    this.gameIsOver = true;
-                    return;
-                }
-                this.Tetracube.generateTetracube();
-                break;
+            //case "g":
+            //    if (!this.checkMatrixMap()) {
+            //        this.gameIsOver = true;
+            //        return;
+            //    }
+            //    this.Tetracube.generateTetracube();
+            //    break;
             case "w":
-                this.moveW();
+                this.socket.emit("wKeyPressed");
                 break;
             case "s":
-                this.moveS();
+                this.socket.emit("sKeyPressed");
                 break;
             case "a":
-                this.moveA();
+                this.socket.emit("aKeyPressed");
                 break;
             case "d":
-                this.moveD();
+                this.socket.emit("dKeyPressed");
                 break;
             case "q":
-                this.rotateQ();
+                this.socket.emit("qKeyPressed");
                 break;
             case "e":
-                this.rotateE();
+                this.socket.emit("eKeyPressed");
                 break;
             case "r":
-                this.rotateR();
+                this.socket.emit("rKeyPressed");
                 break;
             case "shift":
                 this.socket.emit("shiftKeyPressed");
-                console.log("Shift key pressed");
                 break;
-            case "escape":
-                this.gameIsOver = true;
-                break;
+            //case "escape":
+            //    this.gameIsOver = true;
+            //    break;
             default:
                 break;
         }

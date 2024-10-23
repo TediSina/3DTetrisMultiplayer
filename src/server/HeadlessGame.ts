@@ -11,6 +11,9 @@ import { pickRandomTetracube, pickRandomRotation, TetracubeStringType, RotationS
 import { Room } from './HeadlessApp';
 
 
+type stringKeybindHeadless = "w" | "s" | "a" | "d" | "q" | "e" | "r" | "shift";
+
+
 export class HeadlessGame {
     private io: Server;
     private room: Room;
@@ -440,6 +443,8 @@ export class HeadlessGame {
      */
     public moveW(): void {
         if (this.checkW() && checkTetracubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, 0, -1))) {
+            this.io.emit("moveW");
+
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
 
             this.Tetracube.getCubes().forEach(cube => {
@@ -498,6 +503,8 @@ export class HeadlessGame {
      */
     public moveS(): void {
         if (this.checkS() && checkTetracubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, 0, 1))) {
+            this.io.emit("moveS");
+
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
 
             this.Tetracube.getCubes().forEach(cube => {
@@ -556,6 +563,8 @@ export class HeadlessGame {
      */
     public moveA(): void {
         if (this.checkA() && checkTetracubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(1, 0, 0))) {
+            this.io.emit("moveA");
+
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
 
             this.Tetracube.getCubes().forEach(cube => {
@@ -614,6 +623,8 @@ export class HeadlessGame {
      */
     public moveD(): void {
         if (this.checkD() && checkTetracubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(-1, 0, 0))) {
+            this.io.emit("moveD");
+
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
 
             this.Tetracube.getCubes().forEach(cube => {
@@ -688,6 +699,8 @@ export class HeadlessGame {
         const cubePositions: BABYLON.Vector3[] = calculateTetracubeCubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, 0, 0));
 
         if (this.checkQ() && checkTetracubeRotation(cubePositions, Matrices.rotationMatrixX90, this.Tetracube.type)) {
+            this.io.emit("rotateQ");
+
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
             rotateTetracube(this.Tetracube.getCubes(), Matrices.rotationMatrixX90);
         }
@@ -758,6 +771,8 @@ export class HeadlessGame {
         const cubePositions: BABYLON.Vector3[] = calculateTetracubeCubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, 0, 0));
 
         if (this.checkE() && checkTetracubeRotation(cubePositions, Matrices.rotationMatrixY90, this.Tetracube.type)) {
+            this.io.emit("rotateE");
+
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
             rotateTetracube(this.Tetracube.getCubes(), Matrices.rotationMatrixY90);
         }
@@ -828,6 +843,8 @@ export class HeadlessGame {
         const cubePositions: BABYLON.Vector3[] = calculateTetracubeCubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, 0, 0));
 
         if (this.checkR() && checkTetracubeRotation(cubePositions, Matrices.rotationMatrixZ90, this.Tetracube.type)) {
+            this.io.emit("rotateR");
+
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
             rotateTetracube(this.Tetracube.getCubes(), Matrices.rotationMatrixZ90);
         }
@@ -836,10 +853,9 @@ export class HeadlessGame {
 
     /**
      * Handles key down events.
-     * @param event - The key down event.
+     * @param event - The key down event as a stromg.
      *
      * Key bindings:
-     * - G: Generate a new Tetracube
      * - W: Move the Tetracube up
      * - S: Move the Tetracube down
      * - A: Move the Tetracube left
@@ -848,17 +864,9 @@ export class HeadlessGame {
      * - E: Rotate the Tetracube one quarter turn clockwise around the Y axis
      * - R: Rotate the Tetracube one quarter turn clockwise around the Z axis
      * - Shift: Increase the game speed
-     * - Escape: End the game
      */
-    public keyDown(event: KeyboardEvent): void {
-        switch (event.key.toLowerCase()) {
-            case "g":
-                if (!this.checkMatrixMap()) {
-                    this.gameIsOver = true;
-                    return;
-                }
-                this.Tetracube.generateTetracube();
-                break;
+    public keyDown(event: stringKeybindHeadless): void {
+        switch (event) {
             case "w":
                 this.moveW();
                 break;
@@ -882,9 +890,6 @@ export class HeadlessGame {
                 break;
             case "shift":
                 this.timeStep += 10;
-                break;
-            case "escape":
-                this.gameIsOver = true;
                 break;
             default:
                 break;

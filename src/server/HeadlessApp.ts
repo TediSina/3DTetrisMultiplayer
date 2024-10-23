@@ -113,6 +113,48 @@ export class HeadlessApp {
                     });
                 }
 
+                socket.on("wKeyPressed", () => {
+                    if (socket.id === room.players[room.currentPlayerIndex]) {
+                        this.Game.keyDown("w");
+                    }
+                });
+
+                socket.on("aKeyPressed", () => {
+                    if (socket.id === room.players[room.currentPlayerIndex]) {
+                        this.Game.keyDown("a");
+                    }
+                });
+
+                socket.on("sKeyPressed", () => {
+                    if (socket.id === room.players[room.currentPlayerIndex]) {
+                        this.Game.keyDown("s");
+                    }
+                });
+
+                socket.on("dKeyPressed", () => {
+                    if (socket.id === room.players[room.currentPlayerIndex]) {
+                        this.Game.keyDown("d");
+                    }
+                });
+
+                socket.on("eKeyPressed", () => {
+                    if (socket.id === room.players[room.currentPlayerIndex]) {
+                        this.Game.keyDown("e");
+                    }
+                });
+                
+                socket.on("qKeyPressed", () => {
+                    if (socket.id === room.players[room.currentPlayerIndex]) {
+                        this.Game.keyDown("q");
+                    }
+                });
+
+                socket.on("rKeyPressed", () => {
+                    if (socket.id === room.players[room.currentPlayerIndex]) {
+                        this.Game.keyDown("r");
+                    }
+                });
+
                 socket.on("shiftKeyPressed", () => {
                     if (socket.id === room.players[room.currentPlayerIndex]) {
                         this.Game.timeStep += 10;
