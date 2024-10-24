@@ -133,6 +133,17 @@ export class Game {
             this.controlText.text = "You do not control the tetracube";
             this.controlText.color = "red";
         });
+
+        socketOn(this.socket, "clearRow", (data) => {
+            console.log(data);
+            console.log("Clearing row...");
+
+            this.addScore(3000 * data.rows.length);
+
+            for (const row of data.rows) {
+                this.clearRow(row);
+            }
+        });
     }
 
     /**

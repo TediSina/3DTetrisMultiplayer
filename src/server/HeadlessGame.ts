@@ -339,6 +339,10 @@ export class HeadlessGame {
     public update(): void {
         if (this.timeStep >= this.timeCheck) {
             if (this.getFullRows().length > 0) {
+                console.log("Clearing row...");
+
+                this.io.to(this.room.roomId).emit("clearRow", { rows: this.getFullRows() });
+
                 this.addScore(3000 * this.getFullRows().length);
 
                 for (const row of this.getFullRows()) {
