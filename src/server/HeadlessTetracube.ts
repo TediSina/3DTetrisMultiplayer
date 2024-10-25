@@ -60,9 +60,6 @@ export class HeadlessTetracube {
         const rotationResult: any[] = this.generateRotation(position, this.type);
         const rotation: BABYLON.Matrix = rotationResult[0];
         const stringifiedRotation: string[] = rotationResult[1];
-        console.log(`Generated tetracube: ${tetracube}`);
-        console.log(`Generated position: ${position}`);
-        console.log(`Generated rotation: ${rotation}`);
 
         // Emit tetracube generation event to all players
         this.io.to(this.room.roomId).emit('generateTetracube', { tetracube, position, stringifiedRotation });

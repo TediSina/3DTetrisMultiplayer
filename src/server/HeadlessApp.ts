@@ -42,10 +42,8 @@ export class HeadlessApp {
      * It also sets up the event listeners for keyboard input and the render loop.
      */
     constructor() {
-        // Serve static files (e.g., Webpack bundle)
         this.app.use(express.static(path.join(this.__dirname, '../../dist')));
 
-        // Serve index.html
         this.app.get('/', (req: Request, res: Response) => {
             res.sendFile(path.join(this.__dirname, '../../public/index.html'));
         });
@@ -55,17 +53,6 @@ export class HeadlessApp {
         const camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(-1.5, 9.5, 4.5), scene);
         camera.setPosition(new BABYLON.Vector3(-1.5, 9.5, 35));
 
-        //scene.render();
-        //engine.resize();
-        //this.Game.update();
-
-        //engine.runRenderLoop(() => {
-        //    scene.render();
-        //    engine.resize();
-        //    this.Game.update();
-        //});
-
-        // Set the maximum number of players required to start the game
         const maxPlayers = 2;
 
         this.io.on('connection', (socket) => {
@@ -74,28 +61,26 @@ export class HeadlessApp {
                 console.log(`Player ${socket.id} joined room ${roomId}`);
                 socket.join(roomId);
 
-                // Initialize room if not existing
                 if (!this.rooms[roomId]) {
                     this.rooms[roomId] = { roomId: roomId, players: [], currentPlayerIndex: 0, maxPlayers, gameStarted: false };
+
+                    console.log(`Room ${roomId} created`);
                 }
 
                 const room = this.rooms[roomId];
 
-                // Add player to the room if they haven't already joined
                 if (!room.players.includes(socket.id)) {
                     room.players.push(socket.id);
                     console.log(`Player ${socket.id} joined room ${roomId}`);
                 }
 
-                // Notify all players about the new player joining
                 this.io.to(roomId).emit('playerJoined', room.players);
 
-                // Check if the number of players matches the maxPlayers
+                console.log(`Players in room ${roomId}: ${room.players.join(', ')}`);
+
                 if (room.players.length === room.maxPlayers && !room.gameStarted) {
-                    // Start the game only when all players have joined
                     room.gameStarted = true;
 
-                    // Notify players the game is starting
                     this.io.to(roomId).emit('gameStarting');
                     console.log(`Game started in room ${roomId}`);
 
@@ -112,6 +97,17 @@ export class HeadlessApp {
                         }
                     });
                 }
+
+                socket.on("gameStarting", () => {
+                    engine.runRenderLoop(() => {
+                        if (this.Game.gameIsOver === false || room.players.length > 0) {
+                            this.Game.update();
+                        } else {
+                            this.Game.gameIsOver = true;
+                            engine.stopRenderLoop();
+                        }
+                    });
+                });
 
                 socket.on("wKeyPressed", () => {
                     if (socket.id === room.players[room.currentPlayerIndex]) {
@@ -158,21 +154,31 @@ export class HeadlessApp {
                 socket.on("shiftKeyPressed", () => {
                     if (socket.id === room.players[room.currentPlayerIndex]) {
                         this.Game.timeStep += 10;
-                        console.log(this.Game.timeStep);
+                    }
+                });
+
+                socket.on("leaveRoom" , (roomId: string) => {
+                    if (!(roomId in this.rooms)) {
+                        console.log(`Room ${roomId} not found`);
+                        return;
+                    }
+
+                    console.log(`Player ${socket.id} left room ${roomId}`);
+                    socket.leave(roomId);
+                    this.rooms[roomId].players = this.rooms[roomId].players.filter(player => player !== socket.id);
+                    this.io.to(roomId).emit('playerLeft', socket.id);
+                    console.log(`Room ${roomId} has ${this.rooms[roomId].players.length} players`);
+
+                    if (this.rooms[roomId].players.length === 0) {
+                        delete this.rooms[roomId];
+                        console.log(`Room ${roomId} deleted`);
+                        this.Game.gameIsOver = true;
+                        engine.stopRenderLoop();
                     }
                 });
             });
 
-            //socket.on('tetracubeGenerated', (roomId: string) => {
-            //    const room = this.rooms[roomId];
-            //    if (room) {
-            //        // Generate the next tetracube after the current one is placed
-            //        this.generateTetracube(roomId);
-            //    }
-            //});
-
             socket.on('disconnect', () => {
-                // Handle player disconnection and update the room
                 console.log(`Player ${socket.id} disconnected`);
                 for (const roomId in this.rooms) {
                     const room = this.rooms[roomId];
@@ -196,7 +202,6 @@ export class HeadlessApp {
             });
         });
 
-        // Start the server
         this.server.listen(this.port, () => {
             console.log(`Server is running at http://localhost:${this.port}`);
         });

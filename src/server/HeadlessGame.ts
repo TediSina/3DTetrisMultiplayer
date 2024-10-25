@@ -7,7 +7,6 @@ import { checkTetracubeRotation, calculateTetracubeCubeRotation } from "../clien
 import { HeadlessTetracube } from "./HeadlessTetracube";
 import * as Matrices from "../client/rotationMatrices";
 import { Server } from 'socket.io/dist/index';
-import { pickRandomTetracube, pickRandomRotation, TetracubeStringType, RotationStringType } from './randomizeTetracube';
 import { Room } from './HeadlessApp';
 
 
@@ -160,8 +159,6 @@ export class HeadlessGame {
             occupiedPositions.add(`${x},${y},${z}`);
         }
 
-        console.log(occupiedPositions);
-
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -173,7 +170,6 @@ export class HeadlessGame {
                 z >= 0 && z <= 9
             ) {
                 if (!occupiedPositions.has(`${x},${y - 1},${z}`) && this.matrixMap[x][y - 1][z] === 1) {
-                    console.log("Collided", x, y - 1, z);
                     return true;
                 }
             }
@@ -223,8 +219,6 @@ export class HeadlessGame {
         meshesToRemove.forEach(mesh => {
             mesh.dispose();
         });
-
-        console.log(`${meshesToRemove.length} meshes were deleted in row ${rowY}`);
     }
 
     /**
@@ -352,7 +346,16 @@ export class HeadlessGame {
 
             if (this.tetracubeHasReachedBottom()) {
                 if (!this.checkMatrixMap()) {
+                    console.log("Game over!");
+
+                    this.io.to(this.room.roomId).emit("gameOver");
+
                     this.gameIsOver = true;
+
+                    this.scene.getEngine().stopRenderLoop();
+
+                    this.io.socketsLeave(this.room.roomId);
+
                     return;
                 }
 
@@ -366,7 +369,6 @@ export class HeadlessGame {
                     this.room.currentPlayerIndex = 0;
                     this.io.to(this.room.players[this.room.currentPlayerIndex]).emit("tetracubeControl");
                 }
-                console.log("Tetracube has reached bottom");
             }
 
             const positionIsValid = checkTetracubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, -1, 0));
@@ -377,7 +379,16 @@ export class HeadlessGame {
                 this.io.to(this.room.roomId).emit("moveTetracubeDown");
             } else {
                 if (!this.checkMatrixMap()) {
+                    console.log("Game over!");
+
+                    this.io.to(this.room.roomId).emit("gameOver");
+
                     this.gameIsOver = true;
+
+                    this.scene.getEngine().stopRenderLoop();
+
+                    this.io.socketsLeave(this.room.roomId);
+
                     return;
                 }
 
@@ -414,8 +425,6 @@ export class HeadlessGame {
             occupiedPositions.add(`${x},${y},${z}`);
         }
 
-        console.log(occupiedPositions);
-
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -428,11 +437,9 @@ export class HeadlessGame {
             ) {
                 try {
                     if (!occupiedPositions.has(`${x},${y},${z - 1}`) && this.matrixMap[x][y][z - 1] === 1) {
-                        console.log("Collided", x, y, z - 1);
                         return false;
                     }
                 } catch (error) {
-                    console.log("Movement out of bounds", x, y, z);
                     return false;
                 }
             }
@@ -474,8 +481,6 @@ export class HeadlessGame {
             occupiedPositions.add(`${x},${y},${z}`);
         }
 
-        console.log(occupiedPositions);
-
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -488,11 +493,9 @@ export class HeadlessGame {
             ) {
                 try {
                     if (!occupiedPositions.has(`${x},${y},${z + 1}`) && this.matrixMap[x][y][z + 1] === 1) {
-                        console.log("Collided", x, y, z + 1);
                         return false;
                     }
                 } catch (error) {
-                    console.log("Movement out of bounds", x, y, z);
                     return false;
                 }
             }
@@ -534,8 +537,6 @@ export class HeadlessGame {
             occupiedPositions.add(`${x},${y},${z}`);
         }
 
-        console.log(occupiedPositions);
-
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -548,11 +549,9 @@ export class HeadlessGame {
             ) {
                 try {
                     if (!occupiedPositions.has(`${x + 1},${y},${z}`) && this.matrixMap[x + 1][y][z] === 1) {
-                        console.log("Collided", x + 1, y, z);
                         return false;
                     }
                 } catch (error) {
-                    console.log("Movement out of bounds", x, y, z);
                     return false;
                 }
             }
@@ -594,8 +593,6 @@ export class HeadlessGame {
             occupiedPositions.add(`${x},${y},${z}`);
         }
 
-        console.log(occupiedPositions);
-
         for (const cube of tetracubeCubes) {
             const x = Math.floor(cube.position.x);
             const y = Math.floor(cube.position.y);
@@ -608,11 +605,9 @@ export class HeadlessGame {
             ) {
                 try {
                     if (!occupiedPositions.has(`${x - 1},${y},${z}`) && this.matrixMap[x - 1][y][z] === 1) {
-                        console.log("Collided", x - 1, y, z);
                         return false;
                     }
                 } catch (error) {
-                    console.log("Movement out of bounds", x, y, z);
                     return false;
                 }
             }
@@ -657,8 +652,6 @@ export class HeadlessGame {
             currentOccupiedPositions.add(`${x},${y},${z}`);
         }
 
-        console.log(currentOccupiedPositions);
-
         const calculatedOccupiedPositions: Set<string> = new Set();
 
         for (const position of calculatedCubePositions) {
@@ -667,8 +660,6 @@ export class HeadlessGame {
             const z = Math.floor(position.z);
             calculatedOccupiedPositions.add(`${x},${y},${z}`);
         }
-
-        console.log(calculatedOccupiedPositions);
 
         for (const position of calculatedCubePositions) {
             const x = Math.floor(position.x);
@@ -682,11 +673,9 @@ export class HeadlessGame {
             ) {
                 try {
                     if (!currentOccupiedPositions.has(`${x},${y},${z}`) && this.matrixMap[x][y][z] === 1) {
-                        console.log("Collided", x, y, z);
                         return false;
                     }
                 } catch (error) {
-                    console.log("Movement out of bounds", x, y, z);
                     return false;
                 }
             }
@@ -729,8 +718,6 @@ export class HeadlessGame {
             currentOccupiedPositions.add(`${x},${y},${z}`);
         }
 
-        console.log(currentOccupiedPositions);
-
         const calculatedOccupiedPositions: Set<string> = new Set();
 
         for (const position of calculatedCubePositions) {
@@ -739,8 +726,6 @@ export class HeadlessGame {
             const z = Math.floor(position.z);
             calculatedOccupiedPositions.add(`${x},${y},${z}`);
         }
-
-        console.log(calculatedOccupiedPositions);
 
         for (const position of calculatedCubePositions) {
             const x = Math.floor(position.x);
@@ -754,11 +739,9 @@ export class HeadlessGame {
             ) {
                 try {
                     if (!currentOccupiedPositions.has(`${x},${y},${z}`) && this.matrixMap[x][y][z] === 1) {
-                        console.log("Collided", x, y, z);
                         return false;
                     }
                 } catch (error) {
-                    console.log("Movement out of bounds", x, y, z);
                     return false;
                 }
             }
@@ -801,8 +784,6 @@ export class HeadlessGame {
             currentOccupiedPositions.add(`${x},${y},${z}`);
         }
 
-        console.log(currentOccupiedPositions);
-
         const calculatedOccupiedPositions: Set<string> = new Set();
 
         for (const position of calculatedCubePositions) {
@@ -811,8 +792,6 @@ export class HeadlessGame {
             const z = Math.floor(position.z);
             calculatedOccupiedPositions.add(`${x},${y},${z}`);
         }
-
-        console.log(calculatedOccupiedPositions);
 
         for (const position of calculatedCubePositions) {
             const x = Math.floor(position.x);
@@ -826,11 +805,9 @@ export class HeadlessGame {
             ) {
                 try {
                     if (!currentOccupiedPositions.has(`${x},${y},${z}`) && this.matrixMap[x][y][z] === 1) {
-                        console.log("Collided", x, y, z);
                         return false;
                     }
                 } catch (error) {
-                    console.log("Movement out of bounds", x, y, z);
                     return false;
                 }
             }

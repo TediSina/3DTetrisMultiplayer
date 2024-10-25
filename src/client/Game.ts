@@ -144,6 +144,14 @@ export class Game {
                 this.clearRow(row);
             }
         });
+
+        socketOn(this.socket, "gameOver", () => {
+            console.log("Game over!");
+
+            this.gameIsOver = true;
+
+            this.socket.emit("leaveRoom", "roomId123");
+        });
     }
 
     /**
