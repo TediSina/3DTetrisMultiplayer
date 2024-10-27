@@ -8,6 +8,7 @@ import { on as socketOn } from "socket.io-client/build/esm/on";
 
 class App {
     private socket: Socket = io("http://localhost:3000");
+    private engine: BABYLON.Engine;
     private scene: BABYLON.Scene;
     private canvas: HTMLCanvasElement;
     private Menu!: Menu;
@@ -27,11 +28,11 @@ class App {
      */
     constructor() {
         this.canvas = (document.getElementById("renderCanvas") as unknown) as HTMLCanvasElement;
-        const engine = new BABYLON.Engine(this.canvas);
-        this.scene = new BABYLON.Scene(engine);
+        this.engine = new BABYLON.Engine(this.canvas);
+        this.scene = new BABYLON.Scene(this.engine);
 
         window.addEventListener("resize", () => {
-            engine.resize();
+            this.engine.resize();
 
             if (this.gameIsOver) {
                 this.scene.render();
@@ -56,40 +57,7 @@ class App {
 
         this.createScene(this.scene);
 
-        engine.runRenderLoop(() => {
-            if (!this.gameIsOver) {
-                this.scene.render();
-
-                //if (this.Game && !this.Game.gameIsOver) {
-                //    socketOn(this.socket, "update", (callback) => {
-                //        this.Game.update();
-                //        callback("Updated");
-                //    });
-                //}
-            } else {
-                this.scene.dispose();
-
-                const nextScene = new BABYLON.Scene(engine);
-                this.createScene(nextScene);
-                this.scene = nextScene;
-
-                const camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(4.5, 9.5, 4.5), this.scene);
-                camera.setPosition(new BABYLON.Vector3(4.5, 9.5, 35));
-                camera.attachControl(this.canvas, true);
-
-                const light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this.scene);
-                light.intensity = 0.7;
-
-                nextScene.render();
-
-                //if (this.Game && !this.Game.gameIsOver) {
-                //    socketOn(this.socket, "update", (callback) => {
-                //        this.Game.update();
-                //        callback("Updated");
-                //    });
-                //}
-            }
-        });
+        this.registerRenderLoop();
     }
 
     /**
@@ -100,8 +68,6 @@ class App {
      * @param scene The scene to create the game in.
      */
     private createScene(scene: BABYLON.Scene): void {
-        const engine = scene.getEngine();
-
         const camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(4.5, 9.5, 4.5), this.scene);
         camera.setPosition(new BABYLON.Vector3(4.5, 9.5, 35));
         camera.attachControl(this.canvas, true);
@@ -112,94 +78,94 @@ class App {
         if (this.gameIsOver) {
             this.GameOver = new GameOver(this.score, this.maxScore, this.isNewMaxScore);
 
-            engine.stopRenderLoop();
+            this.engine.stopRenderLoop();
 
             const pointerDown = scene.onPointerObservable.add((pointerInfo) => {
                 if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
                     scene.onPointerObservable.remove(pointerDown);
                     this.GameOver.hide();
+
                     this.gameIsOver = false;
+                    this.Menu = new Menu(this.socket);
 
-                    this.Game = new Game(this.socket, scene, this.maxScore);
+                    this.onGameStarting(scene);
 
-                    scene.registerBeforeRender(() => {
-                        if (this.Game.gameIsOver) {
-                            this.gameIsOver = true;
-
-                            if (this.maxScore < this.Game.score) {
-                                this.maxScore = this.Game.score;
-                                this.isNewMaxScore = true;
-                            } else {
-                                this.isNewMaxScore = false;
-                            }
-
-                            this.score = this.Game.score;
-                        }
-                    });
-
-                    engine.runRenderLoop(() => {
-                        if (!this.gameIsOver) {
-                            this.scene.render();
-
-                            //if (this.Game && !this.Game.gameIsOver) {
-                            //    socketOn(this.socket, "update", (callback) => {
-                            //        this.Game.update();
-                            //        callback("Updated");
-                            //    });
-                            //}
-                        } else {
-                            this.scene.dispose();
-
-                            const nextScene = new BABYLON.Scene(engine);
-                            this.createScene(nextScene);
-                            this.scene = nextScene;
-
-                            const camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(4.5, 9.5, 4.5), this.scene);
-                            camera.setPosition(new BABYLON.Vector3(4.5, 9.5, 35));
-                            camera.attachControl(this.canvas, true);
-
-                            const light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this.scene);
-                            light.intensity = 0.7;
-
-                            nextScene.render();
-
-                            //if (this.Game && !this.Game.gameIsOver) {
-                            //    socketOn(this.socket, "update", (callback) => {
-                            //        this.Game.update();
-                            //        callback("Updated");
-                            //    });
-                            //}
-                        }
-                    });
+                    this.registerRenderLoop();
                 }
             });
         } else {
-            this.Menu = new Menu();
+            this.Menu = new Menu(this.socket);
 
-            const pointerDown = scene.onPointerObservable.add((pointerInfo) => {
-                if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
-                    scene.onPointerObservable.remove(pointerDown);
-                    this.Menu.hide();
+            this.onGameStarting(scene);
+        }
+    }
 
-                    this.Game = new Game(this.socket, scene, this.maxScore);
+    /**
+     * Registers the render loop of the engine.
+     * When the game is not over, it renders the current scene.
+     * When the game is over, it disposes the current scene, creates a new one, and resets the camera position.
+     */
+    private registerRenderLoop(): void {
+        this.engine.runRenderLoop(() => {
+            if (!this.gameIsOver) {
+                this.scene.render();
+            } else {
+                this.changeScene();
+            }
+        });
+    }
 
-                    scene.registerBeforeRender(() => {
-                        if (this.Game.gameIsOver) {
-                            this.gameIsOver = true;
+    /**
+     * Changes the current scene by disposing of the existing one and creating a new scene.
+     * Sets up the camera and light for the new scene and renders it.
+     * The camera is positioned and attached to the canvas for user control.
+     * The new scene is initialized through the createScene function.
+     */
+    private changeScene() {
+        this.scene.dispose();
 
-                            if (this.maxScore < this.Game.score) {
-                                this.maxScore = this.Game.score;
-                                this.isNewMaxScore = true;
-                            } else {
-                                this.isNewMaxScore = false;
-                            }
+        const nextScene = new BABYLON.Scene(this.engine);
+        this.createScene(nextScene);
+        this.scene = nextScene;
 
-                            this.score = this.Game.score;
-                        }
-                    });
+        const camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(4.5, 9.5, 4.5), this.scene);
+        camera.setPosition(new BABYLON.Vector3(4.5, 9.5, 35));
+        camera.attachControl(this.canvas, true);
+
+        const light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), this.scene);
+        light.intensity = 0.7;
+
+        nextScene.render();
+    }
+
+    /**
+     * Handles the "gameStarting" socket event.
+     * Initializes the game when the event is triggered and hides the menu.
+     * Sets up the scene to check if the game is over before each render.
+     * Updates the game state and score, and checks for a new max score.
+     *
+     * @param scene - The Babylon.js scene to be used for the game.
+     */
+    private onGameStarting(scene: BABYLON.Scene) {
+        socketOn(this.socket, "gameStarting", () => {
+            console.log("Game starting...");
+            this.Menu.hide();
+            this.Game = new Game(this.socket, this.Menu.roomId, scene, this.maxScore);
+
+            scene.registerBeforeRender(() => {
+                if (this.Game.gameIsOver) {
+                    this.gameIsOver = true;
+                    this.score = this.Game.score;
+
+                    if (this.maxScore < this.Game.score) {
+                        this.maxScore = this.Game.score;
+                        this.isNewMaxScore = true;
+                    } else {
+                        this.isNewMaxScore = false;
+                    }
                 }
             });
-        }
+        });
     }
 }
 

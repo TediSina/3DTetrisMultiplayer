@@ -192,7 +192,9 @@ export class HeadlessApp {
                         if (room.players.length === 0) {
                             delete this.rooms[roomId];
                             console.log(`Room ${roomId} deleted`);
-                            this.Game.gameIsOver = true;
+                            if (this.Game) {
+                                this.Game.gameIsOver = true;
+                            }
                             engine.stopRenderLoop();
                         }
 

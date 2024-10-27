@@ -11,6 +11,17 @@ export class GameOver {
     private separator: GUI.Line;
     private fontType: string;
 
+    /**
+     * Constructs a GameOver screen with the provided final score, max score, and 
+     * a flag indicating if a new max score has been achieved. Initializes and 
+     * displays various UI components including the game over heading, score, 
+     * max score, and a message prompting the user to retry. If a new high score 
+     * is achieved, an additional message is displayed.
+     * 
+     * @param finalScore - The player's final score at the end of the game.
+     * @param maxScore - The highest score the player has achieved so far.
+     * @param isNewMaxScore - Boolean indicating if the final score is a new max score.
+     */
     constructor(finalScore: number, maxScore: number, isNewMaxScore: boolean) {
         this.guiTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("GameOverUI");
 

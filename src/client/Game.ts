@@ -25,9 +25,8 @@ export class Game {
     private controlText: GUI.TextBlock;
     public gameIsOver = false;
 
-    constructor(socket: Socket, scene: BABYLON.Scene, maxScore: number = 0) {
+    constructor(socket: Socket, roomId: string, scene: BABYLON.Scene, maxScore: number = 0) {
         this.socket = socket;
-        this.socket.emit('joinRoom', 'roomId123');
         this.scene = scene;
         this.maxScore = maxScore;
         this.Tetracube = new Tetracube(this.scene);
@@ -150,7 +149,7 @@ export class Game {
 
             this.gameIsOver = true;
 
-            this.socket.emit("leaveRoom", "roomId123");
+            this.socket.emit("leaveRoom", roomId);
         });
     }
 
