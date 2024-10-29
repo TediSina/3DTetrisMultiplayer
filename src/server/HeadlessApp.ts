@@ -10,6 +10,8 @@ import { Server } from 'socket.io/dist/index';
 
 // Define the structure of a room
 export interface Room {
+    engine: BABYLON.Engine; // The engine instance
+    game: HeadlessGame | undefined; // The game instance
     roomId: string; // Unique identifier for the room
     players: string[]; // List of player socket IDs
     currentPlayerIndex: number; // Index of the current player
@@ -19,7 +21,6 @@ export interface Room {
 
 
 export class HeadlessApp {
-    private Game!: HeadlessGame;
     private __filename = fileURLToPath(import.meta.url);
     private __dirname = dirname(this.__filename);
     private app = express();
@@ -48,35 +49,65 @@ export class HeadlessApp {
             res.sendFile(path.join(this.__dirname, '../../public/index.html'));
         });
 
-        const engine = new BABYLON.NullEngine();
-        const scene = new BABYLON.Scene(engine);
-        const camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(-1.5, 9.5, 4.5), scene);
-        camera.setPosition(new BABYLON.Vector3(-1.5, 9.5, 35));
-
         const maxPlayers = 2;
 
         this.io.on('connection', (socket) => {
             console.log(`Player ${socket.id} connected`);
             socket.on('joinRoom', (roomId: string) => {
-                console.log(`Player ${socket.id} joined room ${roomId}`);
-                socket.join(roomId);
+                let scene!: BABYLON.Scene;
 
                 if (!this.rooms[roomId]) {
-                    this.rooms[roomId] = { roomId: roomId, players: [], currentPlayerIndex: 0, maxPlayers, gameStarted: false };
+                    this.rooms[roomId] = {
+                        engine: new BABYLON.NullEngine(),
+                        game: undefined,
+                        roomId: roomId,
+                        players: [],
+                        currentPlayerIndex: 0,
+                        maxPlayers: maxPlayers,
+                        gameStarted: false
+                    };
+
+                    scene = new BABYLON.Scene(this.rooms[roomId].engine);
+                    const camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(-1.5, 9.5, 4.5), scene);
+                    camera.setPosition(new BABYLON.Vector3(-1.5, 9.5, 35));
 
                     console.log(`Room ${roomId} created`);
                 }
 
                 const room = this.rooms[roomId];
 
-                if (!room.players.includes(socket.id)) {
+                if (!room.players.includes(socket.id) && room.players.length < room.maxPlayers) {
+                    for (const roomId of Object.keys(this.rooms)) {
+                        const room = this.rooms[roomId];
+                        if (room.players.length > 0) {
+                            console.log(`Room ID: ${roomId}`);
+                            room.players.forEach(playerId => {
+                                if (playerId === socket.id) {
+                                    socket.leave(roomId);
+                                    console.log(`Player ${socket.id} left room ${roomId}`);
+                                    return;
+                                }
+                            });
+                        } else {
+                            console.log(`Room ID: ${roomId} has no players.`);
+                        }
+                    }
+
+                    console.log(`Player ${socket.id} joined room ${roomId}`);
+                    socket.join(roomId);
                     room.players.push(socket.id);
                     console.log(`Player ${socket.id} joined room ${roomId}`);
+                    this.io.to(roomId).emit('playerJoined', room.players);
+                    console.log(`Players in room ${roomId}: ${room.players.join(', ')}`);
+                } else if (!room.players.includes(socket.id) && room.players.length === room.maxPlayers) {
+                    console.log(`Player ${socket.id} failed to join room ${roomId}`);
+                    this.io.to(socket.id).emit('failedToJoinRoomFull');
+                    return;
+                } else {
+                    console.log(`Player ${socket.id} failed to join room ${roomId}`);
+                    this.io.to(socket.id).emit('failedToJoinRoom');
+                    return;
                 }
-
-                this.io.to(roomId).emit('playerJoined', room.players);
-
-                console.log(`Players in room ${roomId}: ${room.players.join(', ')}`);
 
                 if (room.players.length === room.maxPlayers && !room.gameStarted) {
                     room.gameStarted = true;
@@ -86,78 +117,163 @@ export class HeadlessApp {
 
                     this.io.to(room.players[room.currentPlayerIndex]).emit("tetracubeControl");
 
-                    this.Game = new HeadlessGame(this.io, room, scene);
+                    this.rooms[roomId].game = new HeadlessGame(this.io, room, scene);
 
-                    engine.runRenderLoop(() => {
-                        if (this.Game.gameIsOver === false || room.players.length > 0) {
-                            this.Game.update();
-                        } else {
-                            this.Game.gameIsOver = true;
-                            engine.stopRenderLoop();
-                        }
-                    });
+                    if (this.rooms[roomId].game instanceof HeadlessGame) {
+                        this.rooms[roomId].engine.runRenderLoop(() => {
+                            try {
+                                if (!(this.rooms[roomId].game instanceof HeadlessGame)) {
+                                    delete this.rooms[roomId];
+                                    return;
+                                }
+                            } catch (error) {
+                                delete this.rooms[roomId];
+                                return;
+                            }
+
+                            if (this.rooms[roomId].game.gameIsOver === false || room.players.length > 0) {
+                                this.rooms[roomId].game.update();
+                            } else {
+                                this.rooms[roomId].game.gameIsOver = true;
+                                this.rooms[roomId].engine.stopRenderLoop();
+                            }
+                        });
+                    }
                 }
 
                 socket.on("gameStarting", () => {
-                    engine.runRenderLoop(() => {
-                        if (this.Game.gameIsOver === false || room.players.length > 0) {
-                            this.Game.update();
-                        } else {
-                            this.Game.gameIsOver = true;
-                            engine.stopRenderLoop();
-                        }
-                    });
+                    if (this.rooms[roomId].game === undefined) {
+                        return;
+                    }
+
+                    if (this.rooms[roomId].game instanceof HeadlessGame) {
+                        this.rooms[roomId].engine.runRenderLoop(() => {
+                            if (!(this.rooms[roomId].game instanceof HeadlessGame)) {
+                                return;
+                            }
+                            if (this.rooms[roomId].game.gameIsOver === false || room.players.length > 0) {
+                                this.rooms[roomId].game.update();
+                            } else {
+                                this.rooms[roomId].game.gameIsOver = true;
+                                this.rooms[roomId].engine.stopRenderLoop();
+                            }
+                        });
+                    }
                 });
 
                 socket.on("wKeyPressed", () => {
+                    try {
+                        if (this.rooms[roomId].game === undefined) {
+                            return;
+                        }
+                    } catch (error) {
+                        return;
+                    }
+
                     if (socket.id === room.players[room.currentPlayerIndex]) {
-                        this.Game.keyDown("w");
+                        this.rooms[roomId].game.keyDown("w");
                     }
                 });
 
                 socket.on("aKeyPressed", () => {
+                    try {
+                        if (this.rooms[roomId].game === undefined) {
+                            return;
+                        }
+                    } catch (error) {
+                        return;
+                    }
+
                     if (socket.id === room.players[room.currentPlayerIndex]) {
-                        this.Game.keyDown("a");
+                        this.rooms[roomId].game.keyDown("a");
                     }
                 });
 
                 socket.on("sKeyPressed", () => {
+                    try {
+                        if (this.rooms[roomId].game === undefined) {
+                            return;
+                        }
+                    } catch (error) {
+                        return;
+                    }
+
                     if (socket.id === room.players[room.currentPlayerIndex]) {
-                        this.Game.keyDown("s");
+                        this.rooms[roomId].game.keyDown("s");
                     }
                 });
 
                 socket.on("dKeyPressed", () => {
+                    try {
+                        if (this.rooms[roomId].game === undefined) {
+                            return;
+                        }
+                    } catch (error) {
+                        return;
+                    }
+
                     if (socket.id === room.players[room.currentPlayerIndex]) {
-                        this.Game.keyDown("d");
+                        this.rooms[roomId].game.keyDown("d");
                     }
                 });
 
                 socket.on("eKeyPressed", () => {
+                    try {
+                        if (this.rooms[roomId].game === undefined) {
+                            return;
+                        }
+                    } catch (error) {
+                        return;
+                    }
+
                     if (socket.id === room.players[room.currentPlayerIndex]) {
-                        this.Game.keyDown("e");
+                        this.rooms[roomId].game.keyDown("e");
                     }
                 });
-                
+
                 socket.on("qKeyPressed", () => {
+                    try {
+                        if (this.rooms[roomId].game === undefined) {
+                            return;
+                        }
+                    } catch (error) {
+                        return;
+                    }
+
                     if (socket.id === room.players[room.currentPlayerIndex]) {
-                        this.Game.keyDown("q");
+                        this.rooms[roomId].game.keyDown("q");
                     }
                 });
 
                 socket.on("rKeyPressed", () => {
+                    try {
+                        if (this.rooms[roomId].game === undefined) {
+                            return;
+                        }
+                    } catch (error) {
+                        return;
+                    }
+
                     if (socket.id === room.players[room.currentPlayerIndex]) {
-                        this.Game.keyDown("r");
+                        this.rooms[roomId].game.keyDown("r");
                     }
                 });
 
                 socket.on("shiftKeyPressed", () => {
+                    try {
+                        if (this.rooms[roomId].game === undefined) {
+                            return;
+                        }
+                    } catch (error) {
+                        return;
+                    }
+
                     if (socket.id === room.players[room.currentPlayerIndex]) {
-                        this.Game.timeStep += 10;
+                        this.rooms[roomId].game.timeStep += 10;
                     }
                 });
 
-                socket.on("leaveRoom" , (roomId: string) => {
+                socket.on("leaveRoom", (roomId: string) => {
                     if (!(roomId in this.rooms)) {
                         console.log(`Room ${roomId} not found`);
                         return;
@@ -172,8 +288,6 @@ export class HeadlessApp {
                     if (this.rooms[roomId].players.length === 0) {
                         delete this.rooms[roomId];
                         console.log(`Room ${roomId} deleted`);
-                        this.Game.gameIsOver = true;
-                        engine.stopRenderLoop();
                     }
                 });
             });
@@ -192,10 +306,6 @@ export class HeadlessApp {
                         if (room.players.length === 0) {
                             delete this.rooms[roomId];
                             console.log(`Room ${roomId} deleted`);
-                            if (this.Game) {
-                                this.Game.gameIsOver = true;
-                            }
-                            engine.stopRenderLoop();
                         }
 
                         break;

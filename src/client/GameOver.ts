@@ -28,7 +28,7 @@ export class GameOver {
         this.fontType = "Courier New";
 
         this.replayMessage = new GUI.TextBlock();
-        this.replayMessage.text = "Press anywhere to retry";
+        this.replayMessage.text = "Press anywhere to enter the main menu";
         this.replayMessage.color = "lightgray";
         this.replayMessage.fontSize = 35;
         this.replayMessage.fontFamily = this.fontType;

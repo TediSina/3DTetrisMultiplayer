@@ -385,8 +385,6 @@ export class HeadlessGame {
 
                     this.gameIsOver = true;
 
-                    this.scene.getEngine().stopRenderLoop();
-
                     this.io.socketsLeave(this.room.roomId);
 
                     return;
@@ -454,7 +452,7 @@ export class HeadlessGame {
      */
     public moveW(): void {
         if (this.checkW() && checkTetracubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, 0, -1))) {
-            this.io.emit("moveW");
+            this.io.to(this.room.roomId).emit("moveW");
 
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
 
@@ -510,7 +508,7 @@ export class HeadlessGame {
      */
     public moveS(): void {
         if (this.checkS() && checkTetracubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, 0, 1))) {
-            this.io.emit("moveS");
+            this.io.to(this.room.roomId).emit("moveS");
 
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
 
@@ -566,7 +564,7 @@ export class HeadlessGame {
      */
     public moveA(): void {
         if (this.checkA() && checkTetracubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(1, 0, 0))) {
-            this.io.emit("moveA");
+            this.io.to(this.room.roomId).emit("moveA");
 
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
 
@@ -622,7 +620,7 @@ export class HeadlessGame {
      */
     public moveD(): void {
         if (this.checkD() && checkTetracubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(-1, 0, 0))) {
-            this.io.emit("moveD");
+            this.io.to(this.room.roomId).emit("moveD");
 
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
 
@@ -692,7 +690,7 @@ export class HeadlessGame {
         const cubePositions: BABYLON.Vector3[] = calculateTetracubeCubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, 0, 0));
 
         if (this.checkQ() && checkTetracubeRotation(cubePositions, Matrices.rotationMatrixX90, this.Tetracube.type)) {
-            this.io.emit("rotateQ");
+            this.io.to(this.room.roomId).emit("rotateQ");
 
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
             rotateTetracube(this.Tetracube.getCubes(), Matrices.rotationMatrixX90);
@@ -758,7 +756,7 @@ export class HeadlessGame {
         const cubePositions: BABYLON.Vector3[] = calculateTetracubeCubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, 0, 0));
 
         if (this.checkE() && checkTetracubeRotation(cubePositions, Matrices.rotationMatrixY90, this.Tetracube.type)) {
-            this.io.emit("rotateE");
+            this.io.to(this.room.roomId).emit("rotateE");
 
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
             rotateTetracube(this.Tetracube.getCubes(), Matrices.rotationMatrixY90);
@@ -824,7 +822,7 @@ export class HeadlessGame {
         const cubePositions: BABYLON.Vector3[] = calculateTetracubeCubePosition(this.Tetracube.getCubes(), new BABYLON.Vector3(0, 0, 0));
 
         if (this.checkR() && checkTetracubeRotation(cubePositions, Matrices.rotationMatrixZ90, this.Tetracube.type)) {
-            this.io.emit("rotateR");
+            this.io.to(this.room.roomId).emit("rotateR");
 
             this.updateMatrixMap(this.Tetracube.getCubes(), 0);
             rotateTetracube(this.Tetracube.getCubes(), Matrices.rotationMatrixZ90);

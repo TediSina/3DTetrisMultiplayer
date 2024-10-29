@@ -1,6 +1,7 @@
 import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import * as GUI from "@babylonjs/gui/index";
 import { Socket } from 'socket.io-client/build/esm/index';
+import { on as socketOn } from "socket.io-client/build/esm/on";
 
 
 export class Menu {
@@ -15,6 +16,7 @@ export class Menu {
     private fontFamily: string;
     private roomIdInput: GUI.InputText;
     private joinButton: GUI.Button;
+    private roomIdOutputText: GUI.TextBlock;
     public roomId: string = "";
 
     /**
@@ -120,13 +122,30 @@ export class Menu {
         this.joinButton.height = "40px";
         this.joinButton.color = "white";
         this.joinButton.background = "#FF6600";
-        this.joinButton.top = "20%";
+        this.joinButton.top = "17%";
         this.joinButton.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
         this.joinButton.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_CENTER;
         this.joinButton.onPointerClickObservable.add(() => {
             this.joinRoom();
         });
         this.ui.addControl(this.joinButton);
+
+        this.roomIdOutputText = new GUI.TextBlock();
+        this.roomIdOutputText.text = "Room is full.";
+        this.roomIdOutputText.color = "red";
+        this.roomIdOutputText.fontSize = 30;
+        this.roomIdOutputText.fontFamily = this.fontFamily;
+        this.roomIdOutputText.textHorizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+        this.roomIdOutputText.textVerticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+        this.roomIdOutputText.top = "23%";
+        this.roomIdOutputText.isVisible = false;
+        this.ui.addControl(this.roomIdOutputText);
+
+        socketOn(this.socket, "failedToJoinRoomFull", () => {
+            this.roomIdOutputText.color = "red";
+            this.roomIdOutputText.text = "Room is full.";
+            this.roomIdOutputText.isVisible = true;
+        });
     }
 
     /**
@@ -136,9 +155,14 @@ export class Menu {
         if (this.roomId.trim()) {
             console.log(`Joining room with ID: ${this.roomId}`);
             this.socket.emit("joinRoom", this.roomId);
-            this.hide();
+
+            this.roomIdOutputText.color = "green";
+            this.roomIdOutputText.text = `Waiting for game to start in room ${this.roomId}...`;
+            this.roomIdOutputText.isVisible = true;
         } else {
-            console.log("Please enter a room ID.");
+            this.roomIdOutputText.color = "red";
+            this.roomIdOutputText.text = "Room ID cannot be empty.";
+            this.roomIdOutputText.isVisible = true;
         }
     }
 
@@ -154,5 +178,6 @@ export class Menu {
         this.separatorLine.dispose();
         this.roomIdInput.dispose();
         this.joinButton.dispose();
+        this.roomIdOutputText.dispose();
     }
 }

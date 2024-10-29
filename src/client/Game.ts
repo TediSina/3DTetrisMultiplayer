@@ -90,31 +90,31 @@ export class Game {
             console.log(this.Tetracube.cubes);
         });
 
-        socketOn(this.socket, "moveW" , () => {
+        socketOn(this.socket, "moveW", () => {
             this.moveW();
         });
 
-        socketOn(this.socket, "moveS" , () => {
+        socketOn(this.socket, "moveS", () => {
             this.moveS();
         });
 
-        socketOn(this.socket, "moveA" , () => {
+        socketOn(this.socket, "moveA", () => {
             this.moveA();
         });
 
-        socketOn(this.socket, "moveD" , () => {
+        socketOn(this.socket, "moveD", () => {
             this.moveD();
         });
 
-        socketOn(this.socket, "rotateQ" , () => {
+        socketOn(this.socket, "rotateQ", () => {
             this.rotateQ();
         });
 
-        socketOn(this.socket, "rotateE" , () => {
+        socketOn(this.socket, "rotateE", () => {
             this.rotateE();
         });
 
-        socketOn(this.socket, "rotateR" , () => {
+        socketOn(this.socket, "rotateR", () => {
             this.rotateR();
         });
 
@@ -123,12 +123,12 @@ export class Game {
             this.addScore(1);
         });
 
-        socketOn(this.socket, "tetracubeControl" , () => {
+        socketOn(this.socket, "tetracubeControl", () => {
             this.controlText.text = "You control the tetracube";
             this.controlText.color = "green";
         });
 
-        socketOn(this.socket, "removeTetracubeControl" , () => {
+        socketOn(this.socket, "removeTetracubeControl", () => {
             this.controlText.text = "You do not control the tetracube";
             this.controlText.color = "red";
         });
