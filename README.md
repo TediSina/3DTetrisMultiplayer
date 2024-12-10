@@ -1,6 +1,6 @@
 # 3D Tetris Multiplayer
 
-3D Tetris powered by Babylon.js (in progress), but with added support for co-op Socket.IO multiplayer.
+3D Tetris powered by Babylon.js, but with added support for co-op Socket.IO multiplayer.
 
 ## How to Run the Development Server
 
